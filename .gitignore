@@ -1,0 +1,8 @@
+#ignore build directory
+build
+
+#ignore system-specific Makefile
+Makefile
+
+#ignore JetBrains folders
+.idea
