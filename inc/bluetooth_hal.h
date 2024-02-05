@@ -1,24 +1,15 @@
-/*H****************************************************************************
+/*H************************************************************************************************
  * FILENAME:        bluetooth_hal.h
  *
  * DESCRIPTION:
- *      Bluetooth Hardware Abstraction Layer (HAL), this header provides an
- *      abstraction over the UART communications with the Bluetooth Low
- *      Energy (BLE) module (HC-08 v2.2).
+ *      Bluetooth Hardware Abstraction Layer (HAL), this header provides an abstraction over the
+ *      UART communications with the Bluetooth Low Energy (BLE) module (HC-08 v2.2).
  *
  * PUBLIC FUNCTIONS:
  *      void        BT_HAL_init()
  *      void        BT_HAL_sendMessage(const char* data)
  *      bool        BT_HAL_isMessageAvailable()
  *      void        BT_HAL_readMessage(char* buffer, size_t length)
- *
- * GLOBAL DATA:
- *      int         BT_PORT         UART port
- *      int         BT_RX_PIN       UART Receive pin
- *      int         BT_TX_PIN       UART Transmission pin
- *      uint32_t    BT_EUSCI_BASE   EUSCI module
- *      uint32_t    BT_EUSCI_INT    Interrupt for the EUSCI module
- *      int         BT_BUFFER_SIZE  Max size of the unread message buffer
  *
  * NOTES:
  *
@@ -28,6 +19,7 @@
  *
  * CHANGES:
  * DATE         AUTHOR          DETAIL
+ * 04 Feb 2024  Andrea Piccin   Refactoring
  */
 
 #ifndef BLUETOOTH_HAL_H
@@ -38,28 +30,17 @@
 
 #include "driverlib/driverlib.h"
 
-#define BT_PORT GPIO_PORT_P3
-#define BT_RX_PIN GPIO_PIN2
-#define BT_TX_PIN GPIO_PIN3
-#define BT_EUSCI_BASE EUSCI_A2_BASE
-#define BT_EUSCI_INT INT_EUSCIA2
-#define BT_BUFFER_SIZE 256
-
-/*F****************************************************************************
+/*F************************************************************************************************
  * NAME: void BT_HAL_init()
  *
  * DESCRIPTION:
- *      Initialises the hardware required for the bluetooth communications
+ *      Initialises the hardware required for the bluetooth communications.
  *
  * INPUTS:
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          int         BT_PORT         UART port
- *          int         BT_RX_PIN       UART Receive pin
- *          int         BT_TX_PIN       UART Transmission pin
- *          uint32_t    BT_EUSCI_BASE   EUSCI module
- *          uint32_t    BT_EUSCI_INT    Interrupt for the EUSCI module
+ *          None
  *
  *  OUTPUTS:
  *      PARAMETERS:
@@ -71,12 +52,11 @@
  */
 void BT_HAL_init();
 
-/*F****************************************************************************
+/*F************************************************************************************************
  * NAME: void BT_HAL_sendMessage(const char* data);
  *
  * DESCRIPTION:
- *      Send a string to the BLE module that will send it to
- *      every connected device
+ *      Send a string to the BLE module that will send it to every connected device.
  *
  * INPUTS:
  *      PARAMETERS:
@@ -94,11 +74,11 @@ void BT_HAL_init();
  */
 void BT_HAL_sendMessage(const char *data);
 
-/*F****************************************************************************
+/*F************************************************************************************************
  * NAME: bool BT_HAL_isMessageAvailable();
  *
  * DESCRIPTION:
- *      Check if there is an unread message
+ *      Check if there is an unread message.
  *
  * INPUTS:
  *      PARAMETERS:
@@ -119,11 +99,11 @@ void BT_HAL_sendMessage(const char *data);
  */
 bool BT_HAL_isMessageAvailable();
 
-/*F****************************************************************************
+/*F************************************************************************************************
  * NAME: void BT_HAL_readMessage(char* buffer, size_t length);
  *
  * DESCRIPTION:
- *      Read the last received and unread message
+ *      Read the last received and unread message.s
  *
  * INPUTS:
  *      PARAMETERS:
