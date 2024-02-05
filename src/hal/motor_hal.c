@@ -26,15 +26,15 @@
  */
 #include "../../inc/motor_hal.h"
 
-#define MOTOR_TIMER_PERIOD  5000            /* Max value of the counter           */
-#define MOTOR_ENABLE_PORT   GPIO_PORT_P2    /* Port for the PWM signals           */
-#define MOTOR_R_PWM         GPIO_PIN5       /* Pin for the right motor PWM signal */
-#define MOTOR_L_PWM         GPIO_PIN4       /* Pin fot the left motor PWM signal  */
-#define MOTOR_INPUT_PORT    GPIO_PORT_P4    /* Port of the direction pins         */
-#define MOTOR_R_IN1         GPIO_PIN1       /* Right motor's direction pin 1      */
-#define MOTOR_R_IN2         GPIO_PIN2       /* Right motor's direction pin 2      */
-#define MOTOR_L_IN1         GPIO_PIN4       /* Left motor's direction pin 1       */
-#define MOTOR_L_IN2         GPIO_PIN3       /* Left motor's direction pin 2       */
+#define MOTOR_TIMER_PERIOD 5000        /* Max value of the counter           */
+#define MOTOR_ENABLE_PORT GPIO_PORT_P2 /* Port for the PWM signals           */
+#define MOTOR_R_PWM GPIO_PIN5          /* Pin for the right motor PWM signal */
+#define MOTOR_L_PWM GPIO_PIN4          /* Pin for the left motor PWM signal  */
+#define MOTOR_INPUT_PORT GPIO_PORT_P4  /* Port of the direction pins         */
+#define MOTOR_R_IN1 GPIO_PIN1          /* Right motor's direction pin 1      */
+#define MOTOR_R_IN2 GPIO_PIN2          /* Right motor's direction pin 2      */
+#define MOTOR_L_IN1 GPIO_PIN4          /* Left motor's direction pin 1       */
+#define MOTOR_L_IN2 GPIO_PIN3          /* Left motor's direction pin 2       */
 
 /*F************************************************************************************************
  * NAME: void MOTOR_HAL_init()
@@ -64,12 +64,12 @@
 void MOTOR_HAL_init() {
     // [1] Configure the  base timer
     Timer_A_UpModeConfig upConfig = {
-        TIMER_A_CLOCKSOURCE_SMCLK,           // SMCLK = 24MHz
-        TIMER_A_CLOCKSOURCE_DIVIDER_48,      // SMCLK/24 = 500kHz
-        MOTOR_TIMER_PERIOD,                  // SMCLK/24/5000 = 100Hz
-        TIMER_A_TAIE_INTERRUPT_DISABLE,      // Disable Timer interrupt
-        TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE, // Disable CCR0 interrupt
-        TIMER_A_DO_CLEAR                     // Clear value
+            TIMER_A_CLOCKSOURCE_SMCLK,           // SMCLK = 24MHz
+            TIMER_A_CLOCKSOURCE_DIVIDER_48,      // SMCLK/24 = 500kHz
+            MOTOR_TIMER_PERIOD,                  // SMCLK/24/5000 = 100Hz
+            TIMER_A_TAIE_INTERRUPT_DISABLE,      // Disable Timer interrupt
+            TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE, // Disable CCR0 interrupt
+            TIMER_A_DO_CLEAR                     // Clear value
     };
     Timer_A_configureUpMode(TIMER_A0_BASE, &upConfig);
 
@@ -111,7 +111,7 @@ void MOTOR_HAL_motorInit(Motor *motor, MotorInitTemplate initTemplate) {
     if (initTemplate == MOTOR_INIT_LEFT) {
         inPins = MOTOR_L_IN1 | MOTOR_L_IN2;
     } else {
-        inPins = MOTOR_R_IN1 | MOTOR_L_IN2;
+        inPins = MOTOR_R_IN1 | MOTOR_R_IN2;
     }
     GPIO_setAsOutputPin(MOTOR_INPUT_PORT, inPins);
     GPIO_setOutputLowOnPin(MOTOR_INPUT_PORT, inPins);
@@ -209,7 +209,7 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
 
     // Update direction and speed
     motor->state.direction = direction;
-    if(direction == MOTOR_DIR_STOP)
+    if (direction == MOTOR_DIR_STOP)
         motor->state.speed = 0;
 }
 
