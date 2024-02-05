@@ -44,11 +44,7 @@
  *              MOTOR_DIR_REVERSE   Counterclockwise (CCW) rotation, propels the car backward
  *              MOTOR_DIR_STOP      No rotation, the car stops
  */
-typedef enum {
-    MOTOR_DIR_FORWARD,
-    MOTOR_DIR_REVERSE,
-    MOTOR_DIR_STOP
-} MotorDirection;
+typedef enum { MOTOR_DIR_FORWARD, MOTOR_DIR_REVERSE, MOTOR_DIR_STOP } MotorDirection;
 
 /*T************************************************************************************************
  * NAME: MotorInitTemplate
@@ -65,7 +61,7 @@ typedef enum {
 typedef enum {
     MOTOR_INIT_LEFT,
     MOTOR_INIT_RIGHT
-} MotorInitTemplate;    /* Represent the type of the motor   */
+} MotorInitTemplate;
 
 /*T************************************************************************************************
  * NAME: MotorState

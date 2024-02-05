@@ -26,15 +26,15 @@
  */
 #include "../../inc/motor_hal.h"
 
-#define MOTOR_TIMER_PERIOD  5000            /* Max value of the counter           */
-#define MOTOR_ENABLE_PORT   GPIO_PORT_P2    /* Port for the PWM signals           */
-#define MOTOR_R_PWM         GPIO_PIN5       /* Pin for the right motor PWM signal */
-#define MOTOR_L_PWM         GPIO_PIN4       /* Pin fot the left motor PWM signal  */
-#define MOTOR_INPUT_PORT    GPIO_PORT_P4    /* Port of the direction pins         */
-#define MOTOR_R_IN1         GPIO_PIN1       /* Right motor's direction pin 1      */
-#define MOTOR_R_IN2         GPIO_PIN2       /* Right motor's direction pin 2      */
-#define MOTOR_L_IN1         GPIO_PIN4       /* Left motor's direction pin 1       */
-#define MOTOR_L_IN2         GPIO_PIN3       /* Left motor's direction pin 2       */
+#define MOTOR_TIMER_PERIOD 5000        /* Max value of the counter           */
+#define MOTOR_ENABLE_PORT GPIO_PORT_P2 /* Port for the PWM signals           */
+#define MOTOR_R_PWM GPIO_PIN5          /* Pin for the right motor PWM signal */
+#define MOTOR_L_PWM GPIO_PIN4          /* Pin fot the left motor PWM signal  */
+#define MOTOR_INPUT_PORT GPIO_PORT_P4  /* Port of the direction pins         */
+#define MOTOR_R_IN1 GPIO_PIN1          /* Right motor's direction pin 1      */
+#define MOTOR_R_IN2 GPIO_PIN2          /* Right motor's direction pin 2      */
+#define MOTOR_L_IN1 GPIO_PIN4          /* Left motor's direction pin 1       */
+#define MOTOR_L_IN2 GPIO_PIN3          /* Left motor's direction pin 2       */
 
 /*F************************************************************************************************
  * NAME: void MOTOR_HAL_init()
@@ -209,7 +209,7 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
 
     // Update direction and speed
     motor->state.direction = direction;
-    if(direction == MOTOR_DIR_STOP)
+    if (direction == MOTOR_DIR_STOP)
         motor->state.speed = 0;
 }
 

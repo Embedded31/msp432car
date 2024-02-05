@@ -31,18 +31,18 @@
 
 #include "../../inc/bluetooth_hal.h"
 
-#define BT_PORT         GPIO_PORT_P3    /* Bluetooth I/O port                          */
-#define BT_RX_PIN       GPIO_PIN2       /* Bluetooth RX pin                            */
-#define BT_TX_PIN       GPIO_PIN3       /* Bluetooth TX pin                            */
-#define BT_EUSCI_BASE   EUSCI_A2_BASE   /* eUSCI module used for UART communications   */
-#define BT_EUSCI_INT    INT_EUSCIA2     /* eUSCI interrupt related to the eUSCI module */
-#define BT_BUFFER_SIZE  256             /* Max size of the unread message              */
+#define BT_PORT GPIO_PORT_P3        /* Bluetooth I/O port                          */
+#define BT_RX_PIN GPIO_PIN2         /* Bluetooth RX pin                            */
+#define BT_TX_PIN GPIO_PIN3         /* Bluetooth TX pin                            */
+#define BT_EUSCI_BASE EUSCI_A2_BASE /* eUSCI module used for UART communications   */
+#define BT_EUSCI_INT INT_EUSCIA2    /* eUSCI interrupt related to the eUSCI module */
+#define BT_BUFFER_SIZE 256          /* Max size of the unread message              */
 
-static volatile char message[BT_BUFFER_SIZE];   /* Contains the unread message        */
-static volatile int currentRxChar = 0;          /* Index of the current char to read  */
-static volatile bool isMessageReady = false;    /* If there is a pending message      */
-static volatile const char *currentTxChar;      /* Indicates the current char to send */
-static volatile bool isMessageSent = true;      /* If the transmission is terminated  */
+static volatile char message[BT_BUFFER_SIZE]; /* Contains the unread message        */
+static volatile int currentRxChar = 0;        /* Index of the current char to read  */
+static volatile bool isMessageReady = false;  /* If there is a pending message      */
+static volatile const char *currentTxChar;    /* Indicates the current char to send */
+static volatile bool isMessageSent = true;    /* If the transmission is terminated  */
 
 /*F************************************************************************************************
  * NAME: void BT_HAL_init()
@@ -74,22 +74,22 @@ void BT_HAL_init() {
 
     /* [2] Configure and enable the UART module */
     const eUSCI_UART_ConfigV1 BT_uartConfig = {
-            // use SMCLK as clock source
-            EUSCI_A_UART_CLOCKSOURCE_SMCLK,
-            // scale SMCLK to obtain a 9600 Baud Rate
-            156,
-            // set the first & second modulation stages
-            4, 0,
-            // disable the parity error check
-            EUSCI_A_UART_NO_PARITY,
-            // least significant bit first mode
-            EUSCI_A_UART_LSB_FIRST,
-            // duration of the pause between the transmission of two bytes
-            EUSCI_A_UART_ONE_STOP_BIT,
-            // use standard UART mode
-            EUSCI_A_UART_MODE,
-            // use oversampling for enhanced baud rate generation
-            EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION};
+        // use SMCLK as clock source
+        EUSCI_A_UART_CLOCKSOURCE_SMCLK,
+        // scale SMCLK to obtain a 9600 Baud Rate
+        156,
+        // set the first & second modulation stages
+        4, 0,
+        // disable the parity error check
+        EUSCI_A_UART_NO_PARITY,
+        // least significant bit first mode
+        EUSCI_A_UART_LSB_FIRST,
+        // duration of the pause between the transmission of two bytes
+        EUSCI_A_UART_ONE_STOP_BIT,
+        // use standard UART mode
+        EUSCI_A_UART_MODE,
+        // use oversampling for enhanced baud rate generation
+        EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION};
     UART_initModule(BT_EUSCI_BASE, &BT_uartConfig);
     UART_enableModule(BT_EUSCI_BASE);
 

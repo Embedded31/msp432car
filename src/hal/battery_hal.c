@@ -27,13 +27,13 @@
 
 #include "../../inc/battery_hal.h"
 
-#define BATTERY_ADC_PORT    GPIO_PORT_P6    /* Battery input port                                */
-#define BATTERY_ADC_PIN     GPIO_PIN1       /* Battery input pin                                 */
-#define BATTERY_ADC_INPUT   ADC_INPUT_A14   /* ADC input of the battery (port,pin) pair          */
-#define BATTERY_ADC_MEM     ADC_MEM0        /* ADC memory register used for the battery readings */
-#define BATTERY_MAX_VOLTAGE 8400            /* Fully charged battery voltage (mV)                */
-#define BATTERY_MIN_VOLTAGE 6000            /* Discharged battery voltage (mV)                   */
-#define BATTERY_DIVIDER     2.6             /* Fixed hardware-dependent value (see notes)        */
+#define BATTERY_ADC_PORT GPIO_PORT_P6   /* Battery input port                                */
+#define BATTERY_ADC_PIN GPIO_PIN1       /* Battery input pin                                 */
+#define BATTERY_ADC_INPUT ADC_INPUT_A14 /* ADC input of the battery (port,pin) pair          */
+#define BATTERY_ADC_MEM ADC_MEM0        /* ADC memory register used for the battery readings */
+#define BATTERY_MAX_VOLTAGE 8400        /* Fully charged battery voltage (mV)                */
+#define BATTERY_MIN_VOLTAGE 6000        /* Discharged battery voltage (mV)                   */
+#define BATTERY_DIVIDER 2.6             /* Fixed hardware-dependent value (see notes)        */
 
 /*F************************************************************************************************
  * NAME: void BATTERY_HAL_init()
@@ -156,6 +156,6 @@ uint16_t BATTERY_HAL_getVoltage() {
 uint8_t BATTERY_HAL_getPercentage() {
     float voltage = BATTERY_HAL_getVoltage();
     uint8_t percentage =
-            ((voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE)) * 100;
+        ((voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE)) * 100;
     return percentage;
 }
