@@ -130,8 +130,7 @@ static uint32_t getUserFlashSector(uint32_t addr) {
     }
 }
 
-void FlashCtl_getMemoryInfo(uint32_t addr, uint32_t *bankNum,
-                            uint32_t *sectorNum) {
+void FlashCtl_getMemoryInfo(uint32_t addr, uint32_t *bankNum, uint32_t *sectorNum) {
     uint32_t bankLimit;
 
     bankLimit = SysCtl_getFlashSize() / 2;
@@ -158,8 +157,8 @@ static bool _FlashCtl_Program8(uint32_t src, uint32_t dest, uint32_t mTries) {
 
     for (ii = 0; ii < mTries; ii++) {
         /* Clearing flags */
-        FLCTL->CLRIFG |= (FLASH_PROGRAM_ERROR | FLASH_POSTVERIFY_FAILED |
-                          FLASH_PREVERIFY_FAILED | FLASH_WRDPRGM_COMPLETE);
+        FLCTL->CLRIFG |= (FLASH_PROGRAM_ERROR | FLASH_POSTVERIFY_FAILED | FLASH_PREVERIFY_FAILED |
+                          FLASH_WRDPRGM_COMPLETE);
 
         HWREG8(dest) = data;
 
@@ -209,8 +208,8 @@ static bool _FlashCtl_Program32(uint32_t src, uint32_t dest, uint32_t mTries) {
 
     for (ii = 0; ii < mTries; ii++) {
         /* Clearing flags */
-        FLCTL->CLRIFG |= (FLASH_PROGRAM_ERROR | FLASH_POSTVERIFY_FAILED |
-                          FLASH_PREVERIFY_FAILED | FLASH_WRDPRGM_COMPLETE);
+        FLCTL->CLRIFG |= (FLASH_PROGRAM_ERROR | FLASH_POSTVERIFY_FAILED | FLASH_PREVERIFY_FAILED |
+                          FLASH_WRDPRGM_COMPLETE);
 
         HWREG32(dest) = data;
 
@@ -249,8 +248,7 @@ static bool _FlashCtl_Program32(uint32_t src, uint32_t dest, uint32_t mTries) {
     return false;
 }
 
-static bool _FlashCtl_ProgramBurst(uint32_t src, uint32_t dest, uint32_t length,
-                                   uint32_t mTries) {
+static bool _FlashCtl_ProgramBurst(uint32_t src, uint32_t dest, uint32_t length, uint32_t mTries) {
     uint32_t bCalc, otpOffset, ii, jj;
     bool res;
 
@@ -264,20 +262,17 @@ static bool _FlashCtl_ProgramBurst(uint32_t src, uint32_t dest, uint32_t length,
     /* Waiting for idle status */
     while ((FLCTL->PRGBRST_CTLSTAT & FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
            FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_0) {
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
     }
 
     /* Setting/clearing INFO flash flags as appropriate */
     if (dest > SysCtl_getFlashSize()) {
-        FLCTL->PRGBRST_CTLSTAT =
-            (FLCTL->PRGBRST_CTLSTAT & ~FLCTL_PRGBRST_CTLSTAT_TYPE_MASK) |
-            FLCTL_PRGBRST_CTLSTAT_TYPE_1;
+        FLCTL->PRGBRST_CTLSTAT = (FLCTL->PRGBRST_CTLSTAT & ~FLCTL_PRGBRST_CTLSTAT_TYPE_MASK) |
+                                 FLCTL_PRGBRST_CTLSTAT_TYPE_1;
         otpOffset = __INFO_FLASH_TECH_START__;
     } else {
-        FLCTL->PRGBRST_CTLSTAT =
-            (FLCTL->PRGBRST_CTLSTAT & ~FLCTL_PRGBRST_CTLSTAT_TYPE_MASK) |
-            FLCTL_PRGBRST_CTLSTAT_TYPE_0;
+        FLCTL->PRGBRST_CTLSTAT = (FLCTL->PRGBRST_CTLSTAT & ~FLCTL_PRGBRST_CTLSTAT_TYPE_MASK) |
+                                 FLCTL_PRGBRST_CTLSTAT_TYPE_0;
         otpOffset = 0;
     }
 
@@ -294,25 +289,21 @@ static bool _FlashCtl_ProgramBurst(uint32_t src, uint32_t dest, uint32_t length,
 
     for (ii = 0; ii < mTries; ii++) {
         /* Clearing Flags */
-        FLCTL->CLRIFG |= (FLASH_BRSTPRGM_COMPLETE | FLASH_POSTVERIFY_FAILED |
-                          FLASH_PREVERIFY_FAILED);
+        FLCTL->CLRIFG |=
+            (FLASH_BRSTPRGM_COMPLETE | FLASH_POSTVERIFY_FAILED | FLASH_PREVERIFY_FAILED);
 
         /* Waiting for idle status */
-        while ((FLCTL->PRGBRST_CTLSTAT &
-                FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
+        while ((FLCTL->PRGBRST_CTLSTAT & FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
                FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_0) {
-            BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                         FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
+            BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
         }
 
         /* Start the burst program */
-        FLCTL->PRGBRST_CTLSTAT =
-            (FLCTL->PRGBRST_CTLSTAT & ~(FLCTL_PRGBRST_CTLSTAT_LEN_MASK)) |
-            ((bCalc / 4) << FLASH_BURST_PRG_BIT) | FLCTL_PRGBRST_CTLSTAT_START;
+        FLCTL->PRGBRST_CTLSTAT = (FLCTL->PRGBRST_CTLSTAT & ~(FLCTL_PRGBRST_CTLSTAT_LEN_MASK)) |
+                                 ((bCalc / 4) << FLASH_BURST_PRG_BIT) | FLCTL_PRGBRST_CTLSTAT_START;
 
         /* Waiting for the burst to complete */
-        while ((FLCTL->PRGBRST_CTLSTAT &
-                FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
+        while ((FLCTL->PRGBRST_CTLSTAT & FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
                FLASH_PRGBRSTCTLSTAT_BURSTSTATUS_COMPLETE) {
             __no_operation();
         }
@@ -320,16 +311,13 @@ static bool _FlashCtl_ProgramBurst(uint32_t src, uint32_t dest, uint32_t length,
         /* Checking for errors and clearing/masking */
 
         /* Address Error */
-        if (BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                         FLCTL_PRGBRST_CTLSTAT_ADDR_ERR_OFS)) {
+        if (BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_ADDR_ERR_OFS)) {
             goto BurstCleanUp;
         }
 
         /* Pre-Verify Error */
-        if (BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                         FLCTL_PRGBRST_CTLSTAT_AUTO_PRE_OFS) &&
-            BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                         FLCTL_PRGBRST_CTLSTAT_PRE_ERR_OFS)) {
+        if (BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_AUTO_PRE_OFS) &&
+            BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_PRE_ERR_OFS)) {
             __FlashCtl_remaskBurstDataPre(dest, bCalc * 4);
 
             for (jj = 0; jj < bCalc; jj++) {
@@ -344,14 +332,12 @@ static bool _FlashCtl_ProgramBurst(uint32_t src, uint32_t dest, uint32_t length,
         }
 
         /* Post-Verify Error */
-        if (BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                         FLCTL_PRGBRST_CTLSTAT_PST_ERR_OFS)) {
+        if (BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_PST_ERR_OFS)) {
             __FlashCtl_remaskBurstDataPost(dest, bCalc * 4);
 
             for (jj = 0; jj < bCalc; jj++) {
                 if ((HWREG32(__getBurstProgramRegs[jj])) != 0xFFFFFFFF) {
-                    FlashCtl_setProgramVerification(FLASH_BURSTPOST |
-                                                    FLASH_BURSTPRE);
+                    FlashCtl_setProgramVerification(FLASH_BURSTPOST | FLASH_BURSTPRE);
                     break;
                 }
             }
@@ -369,39 +355,32 @@ BurstCleanUp:
     /* Waiting for idle status */
     while ((FLCTL->PRGBRST_CTLSTAT & FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
            FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_0) {
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
     }
     return res;
 }
 
-void FlashCtl_enableReadBuffering(uint_fast8_t memoryBank,
-                                  uint_fast8_t accessMethod) {
+void FlashCtl_enableReadBuffering(uint_fast8_t memoryBank, uint_fast8_t accessMethod) {
     if (memoryBank == FLASH_BANK0 && accessMethod == FLASH_DATA_READ)
         BITBAND_PERI(FLCTL->BANK0_RDCTL, FLCTL_BANK0_RDCTL_BUFD_OFS) = 1;
     else if (memoryBank == FLASH_BANK1 && accessMethod == FLASH_DATA_READ)
         BITBAND_PERI(FLCTL->BANK1_RDCTL, FLCTL_BANK1_RDCTL_BUFD_OFS) = 1;
-    else if (memoryBank == FLASH_BANK0 &&
-             accessMethod == FLASH_INSTRUCTION_FETCH)
+    else if (memoryBank == FLASH_BANK0 && accessMethod == FLASH_INSTRUCTION_FETCH)
         BITBAND_PERI(FLCTL->BANK0_RDCTL, FLCTL_BANK0_RDCTL_BUFI_OFS) = 1;
-    else if (memoryBank == FLASH_BANK1 &&
-             accessMethod == FLASH_INSTRUCTION_FETCH)
+    else if (memoryBank == FLASH_BANK1 && accessMethod == FLASH_INSTRUCTION_FETCH)
         BITBAND_PERI(FLCTL->BANK1_RDCTL, FLCTL_BANK1_RDCTL_BUFI_OFS) = 1;
     else
         ASSERT(false);
 }
 
-void FlashCtl_disableReadBuffering(uint_fast8_t memoryBank,
-                                   uint_fast8_t accessMethod) {
+void FlashCtl_disableReadBuffering(uint_fast8_t memoryBank, uint_fast8_t accessMethod) {
     if (memoryBank == FLASH_BANK0 && accessMethod == FLASH_DATA_READ)
         BITBAND_PERI(FLCTL->BANK0_RDCTL, FLCTL_BANK0_RDCTL_BUFD_OFS) = 0;
     else if (memoryBank == FLASH_BANK1 && accessMethod == FLASH_DATA_READ)
         BITBAND_PERI(FLCTL->BANK1_RDCTL, FLCTL_BANK1_RDCTL_BUFD_OFS) = 0;
-    else if (memoryBank == FLASH_BANK0 &&
-             accessMethod == FLASH_INSTRUCTION_FETCH)
+    else if (memoryBank == FLASH_BANK0 && accessMethod == FLASH_INSTRUCTION_FETCH)
         BITBAND_PERI(FLCTL->BANK0_RDCTL, FLCTL_BANK0_RDCTL_BUFI_OFS) = 0;
-    else if (memoryBank == FLASH_BANK1 &&
-             accessMethod == FLASH_INSTRUCTION_FETCH)
+    else if (memoryBank == FLASH_BANK1 && accessMethod == FLASH_INSTRUCTION_FETCH)
         BITBAND_PERI(FLCTL->BANK1_RDCTL, FLCTL_BANK1_RDCTL_BUFI_OFS) = 0;
     else
         ASSERT(false);
@@ -472,8 +451,7 @@ bool FlashCtl_isSectorProtected(uint_fast8_t memorySpace, uint32_t sector) {
     }
 }
 
-bool FlashCtl_verifyMemory(void *verifyAddr, uint32_t length,
-                           uint_fast8_t pattern) {
+bool FlashCtl_verifyMemory(void *verifyAddr, uint32_t length, uint_fast8_t pattern) {
     uint32_t memoryPattern, addr, otpOffset;
     uint32_t b0WaitState, b1WaitState, intStatus;
     uint32_t bankOneStart, startBank, endBank;
@@ -491,8 +469,7 @@ bool FlashCtl_verifyMemory(void *verifyAddr, uint32_t length,
 
     /* Casting and determining the memory that we need to use */
     addr = (uint32_t)verifyAddr;
-    memoryType =
-        (addr > SysCtl_getFlashSize()) ? FLASH_INFO_SPACE : FLASH_MAIN_SPACE;
+    memoryType = (addr > SysCtl_getFlashSize()) ? FLASH_INFO_SPACE : FLASH_MAIN_SPACE;
 
     /* Assuming Failure */
     res = false;
@@ -558,20 +535,17 @@ bool FlashCtl_verifyMemory(void *verifyAddr, uint32_t length,
     if (length > 63) {
         /* Setting/clearing INFO flash flags as appropriate */
         if (addr > SysCtl_getFlashSize()) {
-            FLCTL->RDBRST_CTLSTAT =
-                (FLCTL->RDBRST_CTLSTAT & ~FLCTL_RDBRST_CTLSTAT_MEM_TYPE_MASK) |
-                FLCTL_RDBRST_CTLSTAT_MEM_TYPE_1;
+            FLCTL->RDBRST_CTLSTAT = (FLCTL->RDBRST_CTLSTAT & ~FLCTL_RDBRST_CTLSTAT_MEM_TYPE_MASK) |
+                                    FLCTL_RDBRST_CTLSTAT_MEM_TYPE_1;
             otpOffset = __INFO_FLASH_TECH_START__;
         } else {
-            FLCTL->RDBRST_CTLSTAT =
-                (FLCTL->RDBRST_CTLSTAT & ~FLCTL_RDBRST_CTLSTAT_MEM_TYPE_MASK) |
-                FLCTL_RDBRST_CTLSTAT_MEM_TYPE_0;
+            FLCTL->RDBRST_CTLSTAT = (FLCTL->RDBRST_CTLSTAT & ~FLCTL_RDBRST_CTLSTAT_MEM_TYPE_MASK) |
+                                    FLCTL_RDBRST_CTLSTAT_MEM_TYPE_0;
             otpOffset = 0;
         }
 
         /* Clearing any lingering fault flags  and preparing burst verify*/
-        BITBAND_PERI(FLCTL->RDBRST_CTLSTAT, FLCTL_RDBRST_CTLSTAT_CLR_STAT_OFS) =
-            1;
+        BITBAND_PERI(FLCTL->RDBRST_CTLSTAT, FLCTL_RDBRST_CTLSTAT_CLR_STAT_OFS) = 1;
         FLCTL->RDBRST_FAILCNT = 0;
         FLCTL->RDBRST_STARTADDR = addr - otpOffset;
         FLCTL->RDBRST_LEN = (length & 0xFFFFFFF0);
@@ -579,8 +553,8 @@ bool FlashCtl_verifyMemory(void *verifyAddr, uint32_t length,
         length = length & 0xF;
 
         /* Starting Burst Verify */
-        FLCTL->RDBRST_CTLSTAT = (FLCTL_RDBRST_CTLSTAT_STOP_FAIL | pattern |
-                                 memoryType | FLCTL_RDBRST_CTLSTAT_START);
+        FLCTL->RDBRST_CTLSTAT =
+            (FLCTL_RDBRST_CTLSTAT_STOP_FAIL | pattern | memoryType | FLCTL_RDBRST_CTLSTAT_START);
 
         /* While the burst read hasn't finished */
         while ((FLCTL->RDBRST_CTLSTAT & FLCTL_RDBRST_CTLSTAT_BRST_STAT_MASK) !=
@@ -589,10 +563,8 @@ bool FlashCtl_verifyMemory(void *verifyAddr, uint32_t length,
         }
 
         /* Checking  for a verification/access error/failure */
-        if (BITBAND_PERI(FLCTL->RDBRST_CTLSTAT,
-                         FLCTL_RDBRST_CTLSTAT_CMP_ERR_OFS) ||
-            BITBAND_PERI(FLCTL->RDBRST_CTLSTAT,
-                         FLCTL_RDBRST_CTLSTAT_ADDR_ERR_OFS) ||
+        if (BITBAND_PERI(FLCTL->RDBRST_CTLSTAT, FLCTL_RDBRST_CTLSTAT_CMP_ERR_OFS) ||
+            BITBAND_PERI(FLCTL->RDBRST_CTLSTAT, FLCTL_RDBRST_CTLSTAT_ADDR_ERR_OFS) ||
             FLCTL->RDBRST_FAILCNT) {
             goto FlashVerifyCleanup;
         }
@@ -642,16 +614,12 @@ bool FlashCtl_setReadMode(uint32_t flashBank, uint32_t readMode) {
         return false;
 
     if (flashBank == FLASH_BANK0) {
-        FLCTL->BANK0_RDCTL =
-            (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_RD_MODE_MASK) | readMode;
-        while ((FLCTL->BANK0_RDCTL & FLCTL_BANK0_RDCTL_RD_MODE_STATUS_MASK) !=
-               (readMode << 16))
+        FLCTL->BANK0_RDCTL = (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_RD_MODE_MASK) | readMode;
+        while ((FLCTL->BANK0_RDCTL & FLCTL_BANK0_RDCTL_RD_MODE_STATUS_MASK) != (readMode << 16))
             ;
     } else if (flashBank == FLASH_BANK1) {
-        FLCTL->BANK1_RDCTL =
-            (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_RD_MODE_MASK) | readMode;
-        while ((FLCTL->BANK1_RDCTL & FLCTL_BANK1_RDCTL_RD_MODE_STATUS_MASK) !=
-               (readMode << 16))
+        FLCTL->BANK1_RDCTL = (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_RD_MODE_MASK) | readMode;
+        while ((FLCTL->BANK1_RDCTL & FLCTL_BANK1_RDCTL_RD_MODE_STATUS_MASK) != (readMode << 16))
             ;
     } else {
         ASSERT(false);
@@ -663,11 +631,9 @@ bool FlashCtl_setReadMode(uint32_t flashBank, uint32_t readMode) {
 
 uint32_t FlashCtl_getReadMode(uint32_t flashBank) {
     if (flashBank == FLASH_BANK0) {
-        return (FLCTL->BANK0_RDCTL & FLCTL_BANK0_RDCTL_RD_MODE_STATUS_MASK) >>
-               16;
+        return (FLCTL->BANK0_RDCTL & FLCTL_BANK0_RDCTL_RD_MODE_STATUS_MASK) >> 16;
     } else if (flashBank == FLASH_BANK1) {
-        return (FLCTL->BANK1_RDCTL & FLCTL_BANK1_RDCTL_RD_MODE_STATUS_MASK) >>
-               16;
+        return (FLCTL->BANK1_RDCTL & FLCTL_BANK1_RDCTL_RD_MODE_STATUS_MASK) >> 16;
     } else {
         ASSERT(false);
         return 0;
@@ -679,8 +645,7 @@ void FlashCtl_initiateMassErase(void) {
     BITBAND_PERI(FLCTL->ERASE_CTLSTAT, FLCTL_ERASE_CTLSTAT_CLR_STAT_OFS) = 1;
 
     /* Performing the mass erase */
-    FLCTL->ERASE_CTLSTAT |=
-        (FLCTL_ERASE_CTLSTAT_MODE | FLCTL_ERASE_CTLSTAT_START);
+    FLCTL->ERASE_CTLSTAT |= (FLCTL_ERASE_CTLSTAT_MODE | FLCTL_ERASE_CTLSTAT_START);
 }
 
 bool FlashCtl_performMassErase(void) {
@@ -700,13 +665,11 @@ bool FlashCtl_performMassErase(void) {
     BITBAND_PERI(FLCTL->ERASE_CTLSTAT, FLCTL_ERASE_CTLSTAT_CLR_STAT_OFS) = 1;
 
     /* Performing the mass erase */
-    FLCTL->ERASE_CTLSTAT |=
-        (FLCTL_ERASE_CTLSTAT_MODE | FLCTL_ERASE_CTLSTAT_START);
+    FLCTL->ERASE_CTLSTAT |= (FLCTL_ERASE_CTLSTAT_MODE | FLCTL_ERASE_CTLSTAT_START);
 
-    while ((FLCTL->ERASE_CTLSTAT & FLCTL_ERASE_CTLSTAT_STATUS_MASK) ==
-               FLCTL_ERASE_CTLSTAT_STATUS_1 ||
-           (FLCTL->ERASE_CTLSTAT & FLCTL_ERASE_CTLSTAT_STATUS_MASK) ==
-               FLCTL_ERASE_CTLSTAT_STATUS_2) {
+    while (
+        (FLCTL->ERASE_CTLSTAT & FLCTL_ERASE_CTLSTAT_STATUS_MASK) == FLCTL_ERASE_CTLSTAT_STATUS_1 ||
+        (FLCTL->ERASE_CTLSTAT & FLCTL_ERASE_CTLSTAT_STATUS_MASK) == FLCTL_ERASE_CTLSTAT_STATUS_2) {
         __no_operation();
     }
 
@@ -728,8 +691,7 @@ bool FlashCtl_performMassErase(void) {
         }
 
         if (!(FLCTL->BANK1_MAIN_WEPROT & sector)) {
-            if (!FlashCtl_verifyMemory((void *)(ii + userFlash), 4096,
-                                       FLASH_1_PATTERN)) {
+            if (!FlashCtl_verifyMemory((void *)(ii + userFlash), 4096, FLASH_1_PATTERN)) {
                 if (!FlashCtl_eraseSector(ii + userFlash))
                     goto MassEraseCleanup;
             }
@@ -737,17 +699,15 @@ bool FlashCtl_performMassErase(void) {
 
         if (sector < FLCTL_BANK0_MAIN_WEPROT_PROT2) {
             if (!(FLCTL->BANK0_INFO_WEPROT & sector)) {
-                if (!FlashCtl_verifyMemory(
-                        (void *)(ii + __INFO_FLASH_TECH_START__), 4096,
-                        FLASH_1_PATTERN)) {
+                if (!FlashCtl_verifyMemory((void *)(ii + __INFO_FLASH_TECH_START__), 4096,
+                                           FLASH_1_PATTERN)) {
                     if (!FlashCtl_eraseSector(ii + __INFO_FLASH_TECH_START__))
                         goto MassEraseCleanup;
                 }
             }
 
             if (!(FLCTL->BANK1_INFO_WEPROT & sector)) {
-                if (!FlashCtl_verifyMemory((void *)(ii + (0x202000)), 4096,
-                                           FLASH_1_PATTERN)) {
+                if (!FlashCtl_verifyMemory((void *)(ii + (0x202000)), 4096, FLASH_1_PATTERN)) {
                     if (!FlashCtl_eraseSector(ii + (0x202000)))
                         goto MassEraseCleanup;
                 }
@@ -784,8 +744,7 @@ bool FlashCtl_eraseSector(uint32_t addr) {
     /* Assuming Failure */
     res = false;
 
-    memoryType =
-        addr > SysCtl_getFlashSize() ? FLASH_INFO_SPACE : FLASH_MAIN_SPACE;
+    memoryType = addr > SysCtl_getFlashSize() ? FLASH_INFO_SPACE : FLASH_MAIN_SPACE;
 
     /* Parsing the TLV and getting the maximum erase pulses */
     SysCtl_getTLVInfo(TLV_TAG_FLASHCTL, 0, &tlvLength, (uint32_t **)&flInfo);
@@ -807,14 +766,12 @@ bool FlashCtl_eraseSector(uint32_t addr) {
     if (memoryType == FLASH_INFO_SPACE) {
         otpOffset = __INFO_FLASH_TECH_START__;
         FLCTL->ERASE_CTLSTAT =
-            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) |
-            FLCTL_ERASE_CTLSTAT_TYPE_1;
+            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) | FLCTL_ERASE_CTLSTAT_TYPE_1;
 
     } else {
         otpOffset = 0;
         FLCTL->ERASE_CTLSTAT =
-            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) |
-            FLCTL_ERASE_CTLSTAT_TYPE_0;
+            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) | FLCTL_ERASE_CTLSTAT_TYPE_0;
     }
 
     /* Clearing old flags  and setting up the erase */
@@ -823,8 +780,7 @@ bool FlashCtl_eraseSector(uint32_t addr) {
 
     for (ii = 0; ii < mTries; ii++) {
         /* Clearing the status */
-        BITBAND_PERI(FLCTL->ERASE_CTLSTAT, FLCTL_ERASE_CTLSTAT_CLR_STAT_OFS) =
-            1;
+        BITBAND_PERI(FLCTL->ERASE_CTLSTAT, FLCTL_ERASE_CTLSTAT_CLR_STAT_OFS) = 1;
 
         /* Starting the erase */
         BITBAND_PERI(FLCTL->ERASE_CTLSTAT, FLCTL_ERASE_CTLSTAT_START_OFS) = 1;
@@ -837,8 +793,7 @@ bool FlashCtl_eraseSector(uint32_t addr) {
         }
 
         /* Return false if an address error */
-        if (BITBAND_PERI(FLCTL->ERASE_CTLSTAT,
-                         FLCTL_ERASE_CTLSTAT_ADDR_ERR_OFS)) {
+        if (BITBAND_PERI(FLCTL->ERASE_CTLSTAT, FLCTL_ERASE_CTLSTAT_ADDR_ERR_OFS)) {
             goto SectorEraseCleanup;
         }
         /* Erase verifying */
@@ -862,8 +817,7 @@ void FlashCtl_initiateSectorErase(uint32_t addr) {
     uint_fast8_t memoryType;
     uint32_t otpOffset = 0;
 
-    memoryType =
-        addr > SysCtl_getFlashSize() ? FLASH_INFO_SPACE : FLASH_MAIN_SPACE;
+    memoryType = addr > SysCtl_getFlashSize() ? FLASH_INFO_SPACE : FLASH_MAIN_SPACE;
 
     /* We can only erase on 4KB boundaries */
     while (addr & 0xFFF) {
@@ -876,14 +830,12 @@ void FlashCtl_initiateSectorErase(uint32_t addr) {
     if (memoryType == FLASH_INFO_SPACE) {
         otpOffset = __INFO_FLASH_TECH_START__;
         FLCTL->ERASE_CTLSTAT =
-            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) |
-            FLCTL_ERASE_CTLSTAT_TYPE_1;
+            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) | FLCTL_ERASE_CTLSTAT_TYPE_1;
 
     } else {
         otpOffset = 0;
         FLCTL->ERASE_CTLSTAT =
-            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) |
-            FLCTL_ERASE_CTLSTAT_TYPE_0;
+            (FLCTL->ERASE_CTLSTAT & ~(FLCTL_ERASE_CTLSTAT_TYPE_MASK)) | FLCTL_ERASE_CTLSTAT_TYPE_0;
     }
 
     /* Clearing old flags  and setting up the erase */
@@ -995,12 +947,10 @@ FlashProgramCleanUp:
 }
 void FlashCtl_setProgramVerification(uint32_t verificationSetting) {
     if ((verificationSetting & FLASH_BURSTPOST))
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_AUTO_PST_OFS) = 1;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_AUTO_PST_OFS) = 1;
 
     if ((verificationSetting & FLASH_BURSTPRE))
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_AUTO_PRE_OFS) = 1;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_AUTO_PRE_OFS) = 1;
 
     if ((verificationSetting & FLASH_REGPRE))
         BITBAND_PERI(FLCTL->PRG_CTLSTAT, FLCTL_PRG_CTLSTAT_VER_PRE_OFS) = 1;
@@ -1011,12 +961,10 @@ void FlashCtl_setProgramVerification(uint32_t verificationSetting) {
 
 void FlashCtl_clearProgramVerification(uint32_t verificationSetting) {
     if ((verificationSetting & FLASH_BURSTPOST))
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_AUTO_PST_OFS) = 0;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_AUTO_PST_OFS) = 0;
 
     if ((verificationSetting & FLASH_BURSTPRE))
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_AUTO_PRE_OFS) = 0;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_AUTO_PRE_OFS) = 0;
 
     if ((verificationSetting & FLASH_REGPRE))
         BITBAND_PERI(FLCTL->PRG_CTLSTAT, FLCTL_PRG_CTLSTAT_VER_PRE_OFS) = 0;
@@ -1051,13 +999,11 @@ uint32_t FlashCtl_isWordProgrammingEnabled(void) {
 
 void FlashCtl_setWaitState(uint32_t flashBank, uint32_t waitState) {
     if (flashBank == FLASH_BANK0) {
-        FLCTL->BANK0_RDCTL =
-            (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_WAIT_MASK) |
-            (waitState << FLCTL_BANK0_RDCTL_WAIT_OFS);
+        FLCTL->BANK0_RDCTL = (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_WAIT_MASK) |
+                             (waitState << FLCTL_BANK0_RDCTL_WAIT_OFS);
     } else if (flashBank == FLASH_BANK1) {
-        FLCTL->BANK1_RDCTL =
-            (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_WAIT_MASK) |
-            (waitState << FLCTL_BANK1_RDCTL_WAIT_OFS);
+        FLCTL->BANK1_RDCTL = (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_WAIT_MASK) |
+                             (waitState << FLCTL_BANK1_RDCTL_WAIT_OFS);
     } else {
         ASSERT(false);
     }
@@ -1065,11 +1011,9 @@ void FlashCtl_setWaitState(uint32_t flashBank, uint32_t waitState) {
 
 uint32_t FlashCtl_getWaitState(uint32_t flashBank) {
     if (flashBank == FLASH_BANK0) {
-        return (FLCTL->BANK0_RDCTL & FLCTL_BANK0_RDCTL_WAIT_MASK) >>
-               FLCTL_BANK0_RDCTL_WAIT_OFS;
+        return (FLCTL->BANK0_RDCTL & FLCTL_BANK0_RDCTL_WAIT_MASK) >> FLCTL_BANK0_RDCTL_WAIT_OFS;
     } else if (flashBank == FLASH_BANK1) {
-        return (FLCTL->BANK1_RDCTL & FLCTL_BANK1_RDCTL_WAIT_MASK) >>
-               FLCTL_BANK1_RDCTL_WAIT_OFS;
+        return (FLCTL->BANK1_RDCTL & FLCTL_BANK1_RDCTL_WAIT_MASK) >> FLCTL_BANK1_RDCTL_WAIT_OFS;
     } else {
         ASSERT(false);
         return 0;
@@ -1268,8 +1212,7 @@ void __FlashCtl_remaskBurstDataPre(uint32_t addr, uint32_t size) {
     /* Waiting for idle status */
     while ((FLCTL->PRGBRST_CTLSTAT & FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
            FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_0) {
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
     }
 
     /* Changing the waitstate and read mode of whichever bank we are in */
@@ -1323,8 +1266,7 @@ void __FlashCtl_remaskBurstDataPost(uint32_t addr, uint32_t size) {
     /* Waiting for idle status */
     while ((FLCTL->PRGBRST_CTLSTAT & FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_MASK) !=
            FLCTL_PRGBRST_CTLSTAT_BURST_STATUS_0) {
-        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT,
-                     FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
+        BITBAND_PERI(FLCTL->PRGBRST_CTLSTAT, FLCTL_PRGBRST_CTLSTAT_CLR_STAT_OFS) = 1;
     }
 
     /* Changing the waitstate and read mode of whichever bank we are in */

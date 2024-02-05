@@ -45,11 +45,10 @@ static uint32_t lfxtFreq;
 #ifdef DEBUG
 
 bool _CSIsClockDividerValid(uint8_t divider) {
-    return (
-        (divider == CS_CLOCK_DIVIDER_1) || (divider == CS_CLOCK_DIVIDER_2) ||
-        (divider == CS_CLOCK_DIVIDER_4) || (divider == CS_CLOCK_DIVIDER_8) ||
-        (divider == CS_CLOCK_DIVIDER_16) || (divider == CS_CLOCK_DIVIDER_32) ||
-        (divider == CS_CLOCK_DIVIDER_64) || (divider == CS_CLOCK_DIVIDER_128));
+    return ((divider == CS_CLOCK_DIVIDER_1) || (divider == CS_CLOCK_DIVIDER_2) ||
+            (divider == CS_CLOCK_DIVIDER_4) || (divider == CS_CLOCK_DIVIDER_8) ||
+            (divider == CS_CLOCK_DIVIDER_16) || (divider == CS_CLOCK_DIVIDER_32) ||
+            (divider == CS_CLOCK_DIVIDER_64) || (divider == CS_CLOCK_DIVIDER_128));
 }
 
 #endif
@@ -99,8 +98,7 @@ static uint32_t _CSGetDividerValue(uint32_t wDivider) {
     }
 }
 
-static uint32_t _CSComputeCLKFrequency(uint32_t wClockSource,
-                                       uint32_t wDivider) {
+static uint32_t _CSComputeCLKFrequency(uint32_t wClockSource, uint32_t wDivider) {
     uint_fast8_t bDivider;
 
     bDivider = _CSGetDividerValue(wDivider);
@@ -210,9 +208,9 @@ void CS_initClockSignal(uint32_t selectedClockSignal, uint32_t clockSource,
             ;
 
         /* Setting the divider and source */
-        CS->CTL1 = ((clockSourceDivider >> CS_ACLK_DIV_BITPOS) |
-                    (clockSource << CS_ACLK_SRC_BITPOS)) |
-                   (CS->CTL1 & ~(CS_CTL1_SELA_MASK | CS_CTL1_DIVA_MASK));
+        CS->CTL1 =
+            ((clockSourceDivider >> CS_ACLK_DIV_BITPOS) | (clockSource << CS_ACLK_SRC_BITPOS)) |
+            (CS->CTL1 & ~(CS_CTL1_SELA_MASK | CS_CTL1_DIVA_MASK));
 
         /* Waiting for ACLK to be ready again */
         while (!BITBAND_PERI(CS->STAT, CS_STAT_ACLK_READY_OFS))
@@ -227,9 +225,9 @@ void CS_initClockSignal(uint32_t selectedClockSignal, uint32_t clockSource,
         while (!BITBAND_PERI(CS->STAT, CS_STAT_MCLK_READY_OFS))
             ;
 
-        CS->CTL1 = ((clockSourceDivider >> CS_MCLK_DIV_BITPOS) |
-                    (clockSource << CS_MCLK_SRC_BITPOS)) |
-                   (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK));
+        CS->CTL1 =
+            ((clockSourceDivider >> CS_MCLK_DIV_BITPOS) | (clockSource << CS_MCLK_SRC_BITPOS)) |
+            (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK));
 
         /* Waiting for MCLK to be ready */
         while (!BITBAND_PERI(CS->STAT, CS_STAT_MCLK_READY_OFS))
@@ -243,9 +241,9 @@ void CS_initClockSignal(uint32_t selectedClockSignal, uint32_t clockSource,
         while (!BITBAND_PERI(CS->STAT, CS_STAT_SMCLK_READY_OFS))
             ;
 
-        CS->CTL1 = ((clockSourceDivider >> CS_SMCLK_DIV_BITPOS) |
-                    (clockSource << CS_HSMCLK_SRC_BITPOS)) |
-                   (CS->CTL1 & ~(CS_CTL1_DIVS_MASK | CS_CTL1_SELS_MASK));
+        CS->CTL1 =
+            ((clockSourceDivider >> CS_SMCLK_DIV_BITPOS) | (clockSource << CS_HSMCLK_SRC_BITPOS)) |
+            (CS->CTL1 & ~(CS_CTL1_DIVS_MASK | CS_CTL1_SELS_MASK));
 
         /* Waiting for SMCLK to be ready */
         while (!BITBAND_PERI(CS->STAT, CS_STAT_SMCLK_READY_OFS))
@@ -259,9 +257,9 @@ void CS_initClockSignal(uint32_t selectedClockSignal, uint32_t clockSource,
         while (!BITBAND_PERI(CS->STAT, CS_STAT_HSMCLK_READY_OFS))
             ;
 
-        CS->CTL1 = ((clockSourceDivider >> CS_HSMCLK_DIV_BITPOS) |
-                    (clockSource << CS_HSMCLK_SRC_BITPOS)) |
-                   (CS->CTL1 & ~(CS_CTL1_DIVHS_MASK | CS_CTL1_SELS_MASK));
+        CS->CTL1 =
+            ((clockSourceDivider >> CS_HSMCLK_DIV_BITPOS) | (clockSource << CS_HSMCLK_SRC_BITPOS)) |
+            (CS->CTL1 & ~(CS_CTL1_DIVHS_MASK | CS_CTL1_SELS_MASK));
 
         /* Waiting for HSMCLK to be ready */
         while (!BITBAND_PERI(CS->STAT, CS_STAT_HSMCLK_READY_OFS))
@@ -302,9 +300,7 @@ void CS_initClockSignal(uint32_t selectedClockSignal, uint32_t clockSource,
     BITBAND_PERI(CS->KEY, CS_KEY_KEY_OFS) = 1;
 }
 
-bool CS_startHFXT(bool bypassMode) {
-    return CS_startHFXTWithTimeout(bypassMode, 0);
-}
+bool CS_startHFXT(bool bypassMode) { return CS_startHFXTWithTimeout(bypassMode, 0); }
 
 bool CS_startHFXTWithTimeout(bool bypassMode, uint32_t timeout) {
     uint32_t wHFFreqRange;
@@ -370,9 +366,7 @@ bool CS_startHFXTWithTimeout(bool bypassMode, uint32_t timeout) {
     return true;
 }
 
-bool CS_startLFXT(uint32_t xtDrive) {
-    return CS_startLFXTWithTimeout(xtDrive, 0);
-}
+bool CS_startLFXT(uint32_t xtDrive) { return CS_startLFXTWithTimeout(xtDrive, 0); }
 
 bool CS_startLFXTWithTimeout(uint32_t xtDrive, uint32_t timeout) {
     uint8_t bNMIStatus;
@@ -437,8 +431,8 @@ bool CS_startLFXTWithTimeout(uint32_t xtDrive, uint32_t timeout) {
 }
 
 void CS_enableClockRequest(uint32_t selectClock) {
-    ASSERT(selectClock == CS_ACLK || selectClock == CS_HSMCLK ||
-           selectClock == CS_SMCLK || selectClock == CS_MCLK);
+    ASSERT(selectClock == CS_ACLK || selectClock == CS_HSMCLK || selectClock == CS_SMCLK ||
+           selectClock == CS_MCLK);
 
     /* Unlocking the module */
     CS->KEY = CS_KEY;
@@ -450,8 +444,8 @@ void CS_enableClockRequest(uint32_t selectClock) {
 }
 
 void CS_disableClockRequest(uint32_t selectClock) {
-    ASSERT(selectClock == CS_ACLK || selectClock == CS_HSMCLK ||
-           selectClock == CS_SMCLK || selectClock == CS_MCLK);
+    ASSERT(selectClock == CS_ACLK || selectClock == CS_HSMCLK || selectClock == CS_SMCLK ||
+           selectClock == CS_MCLK);
 
     /* Unlocking the module */
     CS->KEY = CS_KEY;
@@ -463,8 +457,7 @@ void CS_disableClockRequest(uint32_t selectClock) {
 }
 
 void CS_setReferenceOscillatorFrequency(uint8_t referenceFrequency) {
-    ASSERT(referenceFrequency == CS_REFO_32KHZ ||
-           referenceFrequency == CS_REFO_128KHZ);
+    ASSERT(referenceFrequency == CS_REFO_32KHZ || referenceFrequency == CS_REFO_128KHZ);
 
     /* Unlocking the module */
     CS->KEY = CS_KEY;
@@ -485,8 +478,7 @@ void CS_enableDCOExternalResistor(void) {
     BITBAND_PERI(CS->KEY, CS_KEY_KEY_OFS) = 1;
 }
 
-void CS_setDCOExternalResistorCalibration(uint_fast8_t calData,
-                                          uint_fast8_t freqRange) {
+void CS_setDCOExternalResistorCalibration(uint_fast8_t calData, uint_fast8_t freqRange) {
     uint_fast8_t rselVal;
 
     /* Unlocking the module */
@@ -545,8 +537,7 @@ void CS_tuneDCOFrequency(int16_t tuneParameter) {
     dcoTuneSigned = 0x200;
 
     if (tuneParameter < 0) {
-        CS->CTL0 = ((CS->CTL0 & ~dcoTuneMask) | (tuneParameter & dcoTuneMask) |
-                    dcoTuneSigned);
+        CS->CTL0 = ((CS->CTL0 & ~dcoTuneMask) | (tuneParameter & dcoTuneMask) | dcoTuneSigned);
     } else {
         CS->CTL0 = ((CS->CTL0 & ~dcoTuneMask) | (tuneParameter & dcoTuneMask));
     }
@@ -614,9 +605,8 @@ uint32_t CS_getDCOFrequency(void) {
             calVal = csInfo->rDCOIR_FCAL_RSEL04;
         }
     }
-    retVal =
-        (uint32_t)((centeredFreq) / (1 - ((dcoConst * dcoTune) /
-                                          ((1 + dcoConst * (768 - calVal))))));
+    retVal = (uint32_t)((centeredFreq) /
+                        (1 - ((dcoConst * dcoTune) / ((1 + dcoConst * (768 - calVal))))));
 
     return retVal;
 }
@@ -696,8 +686,7 @@ void CS_setDCOFrequency(uint32_t dcoFrequency) {
         }
     }
 
-    dcoTune = (int16_t)(((dcoSigned - nomFreq) *
-                         (1.0f + dcoConst * (768.0f - calVal))) /
+    dcoTune = (int16_t)(((dcoSigned - nomFreq) * (1.0f + dcoConst * (768.0f - calVal))) /
                         (dcoSigned * dcoConst));
 
     CS_tuneDCOFrequency(dcoTune);
@@ -747,8 +736,7 @@ uint32_t CS_getMCLK(void) {
 }
 
 void CS_enableFaultCounter(uint_fast8_t counterSelect) {
-    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER ||
-           counterSelect == CS_HFXT_FAULT_COUNTER);
+    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER || counterSelect == CS_HFXT_FAULT_COUNTER);
 
     /* Unlocking the module */
     CS->KEY = CS_KEY;
@@ -764,8 +752,7 @@ void CS_enableFaultCounter(uint_fast8_t counterSelect) {
 }
 
 void CS_disableFaultCounter(uint_fast8_t counterSelect) {
-    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER ||
-           counterSelect == CS_HFXT_FAULT_COUNTER);
+    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER || counterSelect == CS_HFXT_FAULT_COUNTER);
 
     /* Unlocking the module */
     CS->KEY = CS_KEY;
@@ -781,8 +768,7 @@ void CS_disableFaultCounter(uint_fast8_t counterSelect) {
 }
 
 void CS_resetFaultCounter(uint_fast8_t counterSelect) {
-    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER ||
-           counterSelect == CS_HFXT_FAULT_COUNTER);
+    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER || counterSelect == CS_HFXT_FAULT_COUNTER);
 
     /* Unlocking the module */
     CS->KEY = CS_KEY;
@@ -798,13 +784,11 @@ void CS_resetFaultCounter(uint_fast8_t counterSelect) {
 }
 
 void CS_startFaultCounter(uint_fast8_t counterSelect, uint_fast8_t countValue) {
-    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER ||
-           counterSelect == CS_HFXT_FAULT_COUNTER);
+    ASSERT(counterSelect == CS_HFXT_FAULT_COUNTER || counterSelect == CS_HFXT_FAULT_COUNTER);
 
-    ASSERT(countValue == CS_FAULT_COUNTER_4096_CYCLES ||
-           countValue == CS_FAULT_COUNTER_8192_CYCLES ||
-           countValue == CS_FAULT_COUNTER_16384_CYCLES ||
-           countValue == CS_FAULT_COUNTER_32768_CYCLES);
+    ASSERT(
+        countValue == CS_FAULT_COUNTER_4096_CYCLES || countValue == CS_FAULT_COUNTER_8192_CYCLES ||
+        countValue == CS_FAULT_COUNTER_16384_CYCLES || countValue == CS_FAULT_COUNTER_32768_CYCLES);
 
     /* Unlocking the module */
     CS->KEY = CS_KEY;
@@ -841,9 +825,7 @@ void CS_disableInterrupt(uint32_t flags) {
 
 uint32_t CS_getInterruptStatus(void) { return CS->IFG; }
 
-uint32_t CS_getEnabledInterruptStatus(void) {
-    return CS_getInterruptStatus() & CS->IE;
-}
+uint32_t CS_getEnabledInterruptStatus(void) { return CS_getInterruptStatus() & CS->IE; }
 
 void CS_clearInterruptFlag(uint32_t flags) {
     /* Unlocking the module */

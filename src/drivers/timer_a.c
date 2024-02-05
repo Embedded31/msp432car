@@ -33,9 +33,7 @@
 #include "../../inc/driverlib/debug.h"
 #include "../../inc/driverlib/interrupt.h"
 
-static void
-privateTimer_AProcessClockSourceDivider(uint32_t timer,
-                                        uint16_t clockSourceDivider) {
+static void privateTimer_AProcessClockSourceDivider(uint32_t timer, uint16_t clockSourceDivider) {
     TIMER_A_CMSIS(timer)->CTL &= ~TIMER_A_CTL_ID__8;
     TIMER_A_CMSIS(timer)->EX0 &= ~TIMER_A_EX0_IDEX_MASK;
 
@@ -87,27 +85,22 @@ privateTimer_AProcessClockSourceDivider(uint32_t timer,
 }
 
 void Timer_A_startCounter(uint32_t timer, uint_fast16_t timerMode) {
-    ASSERT((TIMER_A_UPDOWN_MODE == timerMode) ||
-           (TIMER_A_CONTINUOUS_MODE == timerMode) ||
+    ASSERT((TIMER_A_UPDOWN_MODE == timerMode) || (TIMER_A_CONTINUOUS_MODE == timerMode) ||
            (TIMER_A_UP_MODE == timerMode));
 
     TIMER_A_CMSIS(timer)->CTL |= timerMode;
 }
 
-void Timer_A_configureContinuousMode(
-    uint32_t timer, const Timer_A_ContinuousModeConfig *config) {
-    ASSERT(
-        (TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
+void Timer_A_configureContinuousMode(uint32_t timer, const Timer_A_ContinuousModeConfig *config) {
+    ASSERT((TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
 
-    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) ||
-           (TIMER_A_SKIP_CLEAR == config->timerClear));
+    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) || (TIMER_A_SKIP_CLEAR == config->timerClear));
 
-    ASSERT(
-        (TIMER_A_TAIE_INTERRUPT_ENABLE == config->timerInterruptEnable_TAIE) ||
-        (TIMER_A_TAIE_INTERRUPT_DISABLE == config->timerInterruptEnable_TAIE));
+    ASSERT((TIMER_A_TAIE_INTERRUPT_ENABLE == config->timerInterruptEnable_TAIE) ||
+           (TIMER_A_TAIE_INTERRUPT_DISABLE == config->timerInterruptEnable_TAIE));
 
     ASSERT((TIMER_A_CLOCKSOURCE_DIVIDER_1 == config->clockSourceDivider) ||
            (TIMER_A_CLOCKSOURCE_DIVIDER_2 == config->clockSourceDivider) ||
@@ -134,69 +127,31 @@ void Timer_A_configureContinuousMode(
 
     TIMER_A_CMSIS(timer)->CTL =
         (TIMER_A_CMSIS(timer)->CTL &
-         ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE +
-           TIMER_A_DO_CLEAR + TIMER_A_TAIE_INTERRUPT_ENABLE)) |
-        (config->clockSource + config->timerClear +
-         config->timerInterruptEnable_TAIE);
+         ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE + TIMER_A_DO_CLEAR +
+           TIMER_A_TAIE_INTERRUPT_ENABLE)) |
+        (config->clockSource + config->timerClear + config->timerInterruptEnable_TAIE);
 }
 
-void Timer_A_configureUpMode(uint32_t timer,
-                             const Timer_A_UpModeConfig *config) {
-    ASSERT(
-        (TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
+void Timer_A_configureUpMode(uint32_t timer, const Timer_A_UpModeConfig *config) {
+    ASSERT((TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
 
-    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) ||
-           (TIMER_A_SKIP_CLEAR == config->timerClear));
+    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) || (TIMER_A_SKIP_CLEAR == config->timerClear));
 
-    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) ||
-           (TIMER_A_SKIP_CLEAR == config->timerClear));
+    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) || (TIMER_A_SKIP_CLEAR == config->timerClear));
 
     privateTimer_AProcessClockSourceDivider(timer, config->clockSourceDivider);
 
     TIMER_A_CMSIS(timer)->CTL &=
-        ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE +
-          TIMER_A_DO_CLEAR + TIMER_A_TAIE_INTERRUPT_ENABLE);
-
-    TIMER_A_CMSIS(timer)->CTL |= (config->clockSource + config->timerClear +
-                                  config->timerInterruptEnable_TAIE);
-
-    if (TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE ==
-        config->captureCompareInterruptEnable_CCR0_CCIE)
-        BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[0], TIMER_A_CCTLN_CCIE_OFS) = 1;
-    else
-        BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[0], TIMER_A_CCTLN_CCIE_OFS) = 0;
-
-    TIMER_A_CMSIS(timer)->CCR[0] = config->timerPeriod;
-}
-
-void Timer_A_configureUpDownMode(uint32_t timer,
-                                 const Timer_A_UpDownModeConfig *config) {
-    ASSERT(
-        (TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
-
-    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) ||
-           (TIMER_A_SKIP_CLEAR == config->timerClear));
-
-    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) ||
-           (TIMER_A_SKIP_CLEAR == config->timerClear));
-
-    privateTimer_AProcessClockSourceDivider(timer, config->clockSourceDivider);
-
-    TIMER_A_CMSIS(timer)->CTL &=
-        ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE +
-          TIMER_A_DO_CLEAR + TIMER_A_TAIE_INTERRUPT_ENABLE);
+        ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE + TIMER_A_DO_CLEAR +
+          TIMER_A_TAIE_INTERRUPT_ENABLE);
 
     TIMER_A_CMSIS(timer)->CTL |=
-        (config->clockSource + TIMER_A_STOP_MODE + config->timerClear +
-         config->timerInterruptEnable_TAIE);
-    if (TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE ==
-        config->captureCompareInterruptEnable_CCR0_CCIE)
+        (config->clockSource + config->timerClear + config->timerInterruptEnable_TAIE);
+
+    if (TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE == config->captureCompareInterruptEnable_CCR0_CCIE)
         BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[0], TIMER_A_CCTLN_CCIE_OFS) = 1;
     else
         BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[0], TIMER_A_CCTLN_CCIE_OFS) = 0;
@@ -204,8 +159,33 @@ void Timer_A_configureUpDownMode(uint32_t timer,
     TIMER_A_CMSIS(timer)->CCR[0] = config->timerPeriod;
 }
 
-void Timer_A_initCapture(uint32_t timer,
-                         const Timer_A_CaptureModeConfig *config) {
+void Timer_A_configureUpDownMode(uint32_t timer, const Timer_A_UpDownModeConfig *config) {
+    ASSERT((TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
+
+    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) || (TIMER_A_SKIP_CLEAR == config->timerClear));
+
+    ASSERT((TIMER_A_DO_CLEAR == config->timerClear) || (TIMER_A_SKIP_CLEAR == config->timerClear));
+
+    privateTimer_AProcessClockSourceDivider(timer, config->clockSourceDivider);
+
+    TIMER_A_CMSIS(timer)->CTL &=
+        ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE + TIMER_A_DO_CLEAR +
+          TIMER_A_TAIE_INTERRUPT_ENABLE);
+
+    TIMER_A_CMSIS(timer)->CTL |= (config->clockSource + TIMER_A_STOP_MODE + config->timerClear +
+                                  config->timerInterruptEnable_TAIE);
+    if (TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE == config->captureCompareInterruptEnable_CCR0_CCIE)
+        BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[0], TIMER_A_CCTLN_CCIE_OFS) = 1;
+    else
+        BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[0], TIMER_A_CCTLN_CCIE_OFS) = 0;
+
+    TIMER_A_CMSIS(timer)->CCR[0] = config->timerPeriod;
+}
+
+void Timer_A_initCapture(uint32_t timer, const Timer_A_CaptureModeConfig *config) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == config->captureRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == config->captureRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == config->captureRegister) ||
@@ -214,11 +194,10 @@ void Timer_A_initCapture(uint32_t timer,
            (TIMER_A_CAPTURECOMPARE_REGISTER_5 == config->captureRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_6 == config->captureRegister));
 
-    ASSERT(
-        (TIMER_A_CAPTUREMODE_NO_CAPTURE == config->captureMode) ||
-        (TIMER_A_CAPTUREMODE_RISING_EDGE == config->captureMode) ||
-        (TIMER_A_CAPTUREMODE_FALLING_EDGE == config->captureMode) ||
-        (TIMER_A_CAPTUREMODE_RISING_AND_FALLING_EDGE == config->captureMode));
+    ASSERT((TIMER_A_CAPTUREMODE_NO_CAPTURE == config->captureMode) ||
+           (TIMER_A_CAPTUREMODE_RISING_EDGE == config->captureMode) ||
+           (TIMER_A_CAPTUREMODE_FALLING_EDGE == config->captureMode) ||
+           (TIMER_A_CAPTUREMODE_RISING_AND_FALLING_EDGE == config->captureMode));
 
     ASSERT((TIMER_A_CAPTURE_INPUTSELECT_CCIxA == config->captureInputSelect) ||
            (TIMER_A_CAPTURE_INPUTSELECT_CCIxB == config->captureInputSelect) ||
@@ -228,10 +207,8 @@ void Timer_A_initCapture(uint32_t timer,
     ASSERT((TIMER_A_CAPTURE_ASYNCHRONOUS == config->synchronizeCaptureSource) ||
            (TIMER_A_CAPTURE_SYNCHRONOUS == config->synchronizeCaptureSource));
 
-    ASSERT((TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE ==
-            config->captureInterruptEnable) ||
-           (TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE ==
-            config->captureInterruptEnable));
+    ASSERT((TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE == config->captureInterruptEnable) ||
+           (TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE == config->captureInterruptEnable));
 
     ASSERT((TIMER_A_OUTPUTMODE_OUTBITVALUE == config->captureOutputMode) ||
            (TIMER_A_OUTPUTMODE_SET == config->captureOutputMode) ||
@@ -252,17 +229,14 @@ void Timer_A_initCapture(uint32_t timer,
     uint8_t idx = (config->captureRegister >> 1) - 1;
     TIMER_A_CMSIS(timer)->CCTL[idx] =
         (TIMER_A_CMSIS(timer)->CCTL[idx] &
-         ~(TIMER_A_CAPTUREMODE_RISING_AND_FALLING_EDGE |
-           TIMER_A_CAPTURE_INPUTSELECT_Vcc | TIMER_A_CAPTURE_SYNCHRONOUS |
-           TIMER_A_DO_CLEAR | TIMER_A_TAIE_INTERRUPT_ENABLE |
+         ~(TIMER_A_CAPTUREMODE_RISING_AND_FALLING_EDGE | TIMER_A_CAPTURE_INPUTSELECT_Vcc |
+           TIMER_A_CAPTURE_SYNCHRONOUS | TIMER_A_DO_CLEAR | TIMER_A_TAIE_INTERRUPT_ENABLE |
            TIMER_A_CCTLN_CM_3)) |
-        (config->captureMode | config->captureInputSelect |
-         config->synchronizeCaptureSource | config->captureInterruptEnable |
-         config->captureOutputMode | TIMER_A_CCTLN_CAP);
+        (config->captureMode | config->captureInputSelect | config->synchronizeCaptureSource |
+         config->captureInterruptEnable | config->captureOutputMode | TIMER_A_CCTLN_CAP);
 }
 
-void Timer_A_initCompare(uint32_t timer,
-                         const Timer_A_CompareModeConfig *config) {
+void Timer_A_initCompare(uint32_t timer, const Timer_A_CompareModeConfig *config) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == config->compareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == config->compareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == config->compareRegister) ||
@@ -271,10 +245,8 @@ void Timer_A_initCompare(uint32_t timer,
            (TIMER_A_CAPTURECOMPARE_REGISTER_5 == config->compareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_6 == config->compareRegister));
 
-    ASSERT((TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE ==
-            config->compareInterruptEnable) ||
-           (TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE ==
-            config->compareInterruptEnable));
+    ASSERT((TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE == config->compareInterruptEnable) ||
+           (TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE == config->compareInterruptEnable));
 
     ASSERT((TIMER_A_OUTPUTMODE_OUTBITVALUE == config->compareOutputMode) ||
            (TIMER_A_OUTPUTMODE_SET == config->compareOutputMode) ||
@@ -295,9 +267,8 @@ void Timer_A_initCompare(uint32_t timer,
 
     uint8_t idx = (config->compareRegister >> 1) - 1;
     TIMER_A_CMSIS(timer)->CCTL[idx] =
-        (TIMER_A_CMSIS(timer)->CCTL[idx] &
-         ~(TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE |
-           TIMER_A_OUTPUTMODE_RESET_SET | TIMER_A_CCTLN_CAP)) |
+        (TIMER_A_CMSIS(timer)->CCTL[idx] & ~(TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE |
+                                             TIMER_A_OUTPUTMODE_RESET_SET | TIMER_A_CCTLN_CAP)) |
         (config->compareInterruptEnable + config->compareOutputMode);
 
     TIMER_A_CMSIS(timer)->CCR[idx] = config->compareValue;
@@ -328,10 +299,9 @@ void Timer_A_clearTimer(uint32_t timer) {
     BITBAND_PERI(TIMER_A_CMSIS(timer)->CTL, TIMER_A_CTL_CLR_OFS) = 1;
 }
 
-uint_fast8_t
-Timer_A_getSynchronizedCaptureCompareInput(uint32_t timer,
-                                           uint_fast16_t captureCompareRegister,
-                                           uint_fast16_t synchronizedSetting) {
+uint_fast8_t Timer_A_getSynchronizedCaptureCompareInput(uint32_t timer,
+                                                        uint_fast16_t captureCompareRegister,
+                                                        uint_fast16_t synchronizedSetting) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == captureCompareRegister) ||
@@ -340,9 +310,8 @@ Timer_A_getSynchronizedCaptureCompareInput(uint32_t timer,
            (TIMER_A_CAPTURECOMPARE_REGISTER_5 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_6 == captureCompareRegister));
 
-    ASSERT(
-        (TIMER_A_READ_CAPTURE_COMPARE_INPUT == synchronizedSetting) ||
-        (TIMER_A_READ_SYNCHRONIZED_CAPTURECOMPAREINPUT == synchronizedSetting));
+    ASSERT((TIMER_A_READ_CAPTURE_COMPARE_INPUT == synchronizedSetting) ||
+           (TIMER_A_READ_SYNCHRONIZED_CAPTURECOMPAREINPUT == synchronizedSetting));
 
     uint8_t idx = (captureCompareRegister >> 1) - 1;
     if (TIMER_A_CMSIS(timer)->CCTL[idx] & synchronizedSetting)
@@ -351,8 +320,8 @@ Timer_A_getSynchronizedCaptureCompareInput(uint32_t timer,
         return TIMER_A_CAPTURECOMPARE_INPUT_LOW;
 }
 
-uint_fast8_t Timer_A_getOutputForOutputModeOutBitValue(
-    uint32_t timer, uint_fast16_t captureCompareRegister) {
+uint_fast8_t Timer_A_getOutputForOutputModeOutBitValue(uint32_t timer,
+                                                       uint_fast16_t captureCompareRegister) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == captureCompareRegister) ||
@@ -368,9 +337,7 @@ uint_fast8_t Timer_A_getOutputForOutputModeOutBitValue(
         return TIMER_A_OUTPUTMODE_OUTBITVALUE_LOW;
 }
 
-uint_fast16_t
-Timer_A_getCaptureCompareCount(uint32_t timer,
-                               uint_fast16_t captureCompareRegister) {
+uint_fast16_t Timer_A_getCaptureCompareCount(uint32_t timer, uint_fast16_t captureCompareRegister) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == captureCompareRegister) ||
@@ -383,9 +350,8 @@ Timer_A_getCaptureCompareCount(uint32_t timer,
     return (TIMER_A_CMSIS(timer)->CCR[idx]);
 }
 
-void Timer_A_setOutputForOutputModeOutBitValue(
-    uint32_t timer, uint_fast16_t captureCompareRegister,
-    uint_fast8_t outputModeOutBitValue) {
+void Timer_A_setOutputForOutputModeOutBitValue(uint32_t timer, uint_fast16_t captureCompareRegister,
+                                               uint_fast8_t outputModeOutBitValue) {
     uint8_t idx = (captureCompareRegister >> 1) - 1;
     TIMER_A_CMSIS(timer)->CCTL[idx] =
         ((TIMER_A_CMSIS(timer)->CCTL[idx]) & ~(TIMER_A_OUTPUTMODE_RESET_SET)) |
@@ -393,11 +359,10 @@ void Timer_A_setOutputForOutputModeOutBitValue(
 }
 
 void Timer_A_generatePWM(uint32_t timer, const Timer_A_PWMConfig *config) {
-    ASSERT(
-        (TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
-        (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
+    ASSERT((TIMER_A_CLOCKSOURCE_EXTERNAL_TXCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_ACLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_SMCLK == config->clockSource) ||
+           (TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK == config->clockSource));
 
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == config->compareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == config->compareRegister) ||
@@ -419,25 +384,22 @@ void Timer_A_generatePWM(uint32_t timer, const Timer_A_PWMConfig *config) {
     privateTimer_AProcessClockSourceDivider(timer, config->clockSourceDivider);
 
     TIMER_A_CMSIS(timer)->CTL &=
-        ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE +
-          TIMER_A_DO_CLEAR + TIMER_A_TAIE_INTERRUPT_ENABLE);
+        ~(TIMER_A_CLOCKSOURCE_INVERTED_EXTERNAL_TXCLK + TIMER_A_UPDOWN_MODE + TIMER_A_DO_CLEAR +
+          TIMER_A_TAIE_INTERRUPT_ENABLE);
 
-    TIMER_A_CMSIS(timer)->CTL |=
-        (config->clockSource + TIMER_A_UP_MODE + TIMER_A_DO_CLEAR);
+    TIMER_A_CMSIS(timer)->CTL |= (config->clockSource + TIMER_A_UP_MODE + TIMER_A_DO_CLEAR);
 
     TIMER_A_CMSIS(timer)->CCR[0] = config->timerPeriod;
 
-    TIMER_A_CMSIS(timer)->CCTL[0] &= ~(TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE +
-                                       TIMER_A_OUTPUTMODE_RESET_SET);
+    TIMER_A_CMSIS(timer)->CCTL[0] &=
+        ~(TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE + TIMER_A_OUTPUTMODE_RESET_SET);
 
     uint8_t idx = (config->compareRegister >> 1) - 1;
     TIMER_A_CMSIS(timer)->CCTL[idx] |= config->compareOutputMode;
     TIMER_A_CMSIS(timer)->CCR[idx] = config->dutyCycle;
 }
 
-void Timer_A_stopTimer(uint32_t timer) {
-    TIMER_A_CMSIS(timer)->CTL &= ~TIMER_A_CTL_MC_3;
-}
+void Timer_A_stopTimer(uint32_t timer) { TIMER_A_CMSIS(timer)->CTL &= ~TIMER_A_CTL_MC_3; }
 
 void Timer_A_setCompareValue(uint32_t timer, uint_fast16_t compareRegister,
                              uint_fast16_t compareValue) {
@@ -457,8 +419,7 @@ void Timer_A_clearInterruptFlag(uint32_t timer) {
     BITBAND_PERI(TIMER_A_CMSIS(timer)->CTL, TIMER_A_CTL_IFG_OFS) = 0;
 }
 
-void Timer_A_clearCaptureCompareInterrupt(
-    uint32_t timer, uint_fast16_t captureCompareRegister) {
+void Timer_A_clearCaptureCompareInterrupt(uint32_t timer, uint_fast16_t captureCompareRegister) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == captureCompareRegister) ||
@@ -483,8 +444,7 @@ uint32_t Timer_A_getInterruptStatus(uint32_t timer) {
     return (TIMER_A_CMSIS(timer)->CTL) & TIMER_A_CTL_IFG;
 }
 
-void Timer_A_enableCaptureCompareInterrupt(
-    uint32_t timer, uint_fast16_t captureCompareRegister) {
+void Timer_A_enableCaptureCompareInterrupt(uint32_t timer, uint_fast16_t captureCompareRegister) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == captureCompareRegister) ||
@@ -497,8 +457,7 @@ void Timer_A_enableCaptureCompareInterrupt(
     BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[idx], TIMER_A_CCTLN_CCIE_OFS) = 1;
 }
 
-void Timer_A_disableCaptureCompareInterrupt(
-    uint32_t timer, uint_fast16_t captureCompareRegister) {
+void Timer_A_disableCaptureCompareInterrupt(uint32_t timer, uint_fast16_t captureCompareRegister) {
     ASSERT((TIMER_A_CAPTURECOMPARE_REGISTER_0 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_1 == captureCompareRegister) ||
            (TIMER_A_CAPTURECOMPARE_REGISTER_2 == captureCompareRegister) ||
@@ -511,8 +470,9 @@ void Timer_A_disableCaptureCompareInterrupt(
     BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[idx], TIMER_A_CCTLN_CCIE_OFS) = 0;
 }
 
-uint32_t Timer_A_getCaptureCompareInterruptStatus(
-    uint32_t timer, uint_fast16_t captureCompareRegister, uint_fast16_t mask) {
+uint32_t Timer_A_getCaptureCompareInterruptStatus(uint32_t timer,
+                                                  uint_fast16_t captureCompareRegister,
+                                                  uint_fast16_t mask) {
     uint8_t idx = (captureCompareRegister >> 1) - 1;
     return (TIMER_A_CMSIS(timer)->CCTL[idx]) & mask;
 }
@@ -525,13 +485,13 @@ uint32_t Timer_A_getEnabledInterruptStatus(uint32_t timer) {
     }
 }
 
-uint32_t Timer_A_getCaptureCompareEnabledInterruptStatus(
-    uint32_t timer, uint_fast16_t captureCompareRegister) {
+uint32_t Timer_A_getCaptureCompareEnabledInterruptStatus(uint32_t timer,
+                                                         uint_fast16_t captureCompareRegister) {
     uint8_t idx = (captureCompareRegister >> 1) - 1;
     if (BITBAND_PERI(TIMER_A_CMSIS(timer)->CCTL[idx], TIMER_A_CCTLN_CCIE_OFS))
-        return Timer_A_getCaptureCompareInterruptStatus(
-            timer, captureCompareRegister,
-            TIMER_A_CAPTURE_OVERFLOW | TIMER_A_CAPTURECOMPARE_INTERRUPT_FLAG);
+        return Timer_A_getCaptureCompareInterruptStatus(timer, captureCompareRegister,
+                                                        TIMER_A_CAPTURE_OVERFLOW |
+                                                            TIMER_A_CAPTURECOMPARE_INTERRUPT_FLAG);
     else
         return 0;
 }

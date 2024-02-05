@@ -59,17 +59,14 @@ void WDT_A_clearTimer(void) {
     WDT_A->CTL = WDT_A_CTL_PW + newWDTStatus;
 }
 
-void WDT_A_initWatchdogTimer(uint_fast8_t clockSelect,
-                             uint_fast8_t clockIterations) {
-    WDT_A->CTL = WDT_A_CTL_PW + WDT_A_CTL_CNTCL + WDT_A_CTL_HOLD + clockSelect +
-                 clockIterations;
+void WDT_A_initWatchdogTimer(uint_fast8_t clockSelect, uint_fast8_t clockIterations) {
+    WDT_A->CTL = WDT_A_CTL_PW + WDT_A_CTL_CNTCL + WDT_A_CTL_HOLD + clockSelect + clockIterations;
 }
 
-void WDT_A_initIntervalTimer(uint_fast8_t clockSelect,
-                             uint_fast8_t clockIterations) {
+void WDT_A_initIntervalTimer(uint_fast8_t clockSelect, uint_fast8_t clockIterations) {
 
-    WDT_A->CTL = WDT_A_CTL_PW + WDT_A_CTL_CNTCL + WDT_A_CTL_HOLD +
-                 WDT_A_CTL_TMSEL + clockSelect + clockIterations;
+    WDT_A->CTL = WDT_A_CTL_PW + WDT_A_CTL_CNTCL + WDT_A_CTL_HOLD + WDT_A_CTL_TMSEL + clockSelect +
+                 clockIterations;
 }
 
 void WDT_A_setPasswordViolationReset(uint_fast8_t resetType) {

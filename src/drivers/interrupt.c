@@ -43,10 +43,10 @@
 // preemption priority bits.
 //
 //*****************************************************************************
-static const uint32_t g_pulPriority[] = {
-    NVIC_APINT_PRIGROUP_0_8, NVIC_APINT_PRIGROUP_1_7, NVIC_APINT_PRIGROUP_2_6,
-    NVIC_APINT_PRIGROUP_3_5, NVIC_APINT_PRIGROUP_4_4, NVIC_APINT_PRIGROUP_5_3,
-    NVIC_APINT_PRIGROUP_6_2, NVIC_APINT_PRIGROUP_7_1};
+static const uint32_t g_pulPriority[] = {NVIC_APINT_PRIGROUP_0_8, NVIC_APINT_PRIGROUP_1_7,
+                                         NVIC_APINT_PRIGROUP_2_6, NVIC_APINT_PRIGROUP_3_5,
+                                         NVIC_APINT_PRIGROUP_4_4, NVIC_APINT_PRIGROUP_5_3,
+                                         NVIC_APINT_PRIGROUP_6_2, NVIC_APINT_PRIGROUP_7_1};
 
 //*****************************************************************************
 //
@@ -149,8 +149,8 @@ static __no_init void (*g_pfnRAMVectors[NUM_INTERRUPTS + 1])(void) @ "VTABLE";
 #pragma DATA_SECTION(g_pfnRAMVectors, ".vtable")
 void (*g_pfnRAMVectors[NUM_INTERRUPTS + 1])(void);
 #else
-static __attribute__((section("vtable"))) void (
-    *g_pfnRAMVectors[NUM_INTERRUPTS + 1])(void) __attribute__((aligned(1024)));
+static __attribute__((section("vtable"))) void (*g_pfnRAMVectors[NUM_INTERRUPTS + 1])(void)
+    __attribute__((aligned(1024)));
 #endif
 
 bool Interrupt_enableMaster(void) {
@@ -167,8 +167,7 @@ bool Interrupt_disableMaster(void) {
     return (CPU_cpsid());
 }
 
-void Interrupt_registerInterrupt(uint32_t interruptNumber,
-                                 void (*intHandler)(void)) {
+void Interrupt_registerInterrupt(uint32_t interruptNumber, void (*intHandler)(void)) {
     uint32_t ulIdx, ulValue;
 
     //
@@ -191,8 +190,7 @@ void Interrupt_registerInterrupt(uint32_t interruptNumber,
         //
         ulValue = SCB->VTOR;
         for (ulIdx = 0; ulIdx < (NUM_INTERRUPTS + 1); ulIdx++) {
-            g_pfnRAMVectors[ulIdx] =
-                (void (*)(void))HWREG32((ulIdx * 4) + ulValue);
+            g_pfnRAMVectors[ulIdx] = (void (*)(void))HWREG32((ulIdx * 4) + ulValue);
         }
 
         //
@@ -232,11 +230,9 @@ void Interrupt_setPriorityGrouping(uint32_t bits) {
     uint32_t PriorityGroupTmp = g_pulPriority[bits];
     reg_value = SCB->AIRCR; /* read old register configuration     */
     reg_value &=
-        ~((uint32_t)(SCB_AIRCR_VECTKEY_Msk |
-                     SCB_AIRCR_PRIGROUP_Msk)); /* clear bits to change */
-    reg_value =
-        (reg_value | ((uint32_t)0x5FAUL << SCB_AIRCR_VECTKEY_Pos) |
-         (PriorityGroupTmp << 8U)); /* Insert write key and priority group */
+        ~((uint32_t)(SCB_AIRCR_VECTKEY_Msk | SCB_AIRCR_PRIGROUP_Msk)); /* clear bits to change */
+    reg_value = (reg_value | ((uint32_t)0x5FAUL << SCB_AIRCR_VECTKEY_Pos) |
+                 (PriorityGroupTmp << 8U)); /* Insert write key and priority group */
     SCB->AIRCR = reg_value;
 }
 
@@ -292,9 +288,7 @@ uint8_t Interrupt_getPriority(uint32_t interruptNumber) {
     //
     // Return the interrupt priority.
     //
-    return ((HWREG32(g_pulRegs[interruptNumber >> 2]) >>
-             (8 * (interruptNumber & 3))) &
-            0xFF);
+    return ((HWREG32(g_pulRegs[interruptNumber >> 2]) >> (8 * (interruptNumber & 3))) & 0xFF);
 }
 
 void Interrupt_enableInterrupt(uint32_t interruptNumber) {
@@ -330,8 +324,7 @@ void Interrupt_enableInterrupt(uint32_t interruptNumber) {
         //
         // Enable the general interrupt.
         //
-        HWREG32(g_pulEnRegs[(interruptNumber - 16) / 32]) =
-            1 << ((interruptNumber - 16) & 31);
+        HWREG32(g_pulEnRegs[(interruptNumber - 16) / 32]) = 1 << ((interruptNumber - 16) & 31);
     }
 }
 
@@ -368,8 +361,7 @@ void Interrupt_disableInterrupt(uint32_t interruptNumber) {
         //
         // Disable the general interrupt.
         //
-        HWREG32(g_pulDisRegs[(interruptNumber - 16) / 32]) =
-            1 << ((interruptNumber - 16) & 31);
+        HWREG32(g_pulDisRegs[(interruptNumber - 16) / 32]) = 1 << ((interruptNumber - 16) & 31);
     }
 }
 
@@ -447,8 +439,7 @@ void Interrupt_pendInterrupt(uint32_t interruptNumber) {
         //
         // Pend the general interrupt.
         //
-        HWREG32(g_pulPendRegs[(interruptNumber - 16) / 32]) =
-            1 << ((interruptNumber - 16) & 31);
+        HWREG32(g_pulPendRegs[(interruptNumber - 16) / 32]) = 1 << ((interruptNumber - 16) & 31);
     }
 }
 
@@ -475,14 +466,11 @@ void Interrupt_unpendInterrupt(uint32_t interruptNumber) {
         //
         // Unpend the general interrupt.
         //
-        HWREG32(g_pulUnpendRegs[(interruptNumber - 16) / 32]) =
-            1 << ((interruptNumber - 16) & 31);
+        HWREG32(g_pulUnpendRegs[(interruptNumber - 16) / 32]) = 1 << ((interruptNumber - 16) & 31);
     }
 }
 
-void Interrupt_setPriorityMask(uint8_t priorityMask) {
-    CPU_basepriSet(priorityMask);
-}
+void Interrupt_setPriorityMask(uint8_t priorityMask) { CPU_basepriSet(priorityMask); }
 
 uint8_t Interrupt_getPriorityMask(void) { return (CPU_basepriGet()); }
 
@@ -490,10 +478,6 @@ void Interrupt_setVectorTableAddress(uint32_t addr) { SCB->VTOR = addr; }
 
 uint32_t Interrupt_getVectorTableAddress(void) { return SCB->VTOR; }
 
-void Interrupt_enableSleepOnIsrExit(void) {
-    SCB->SCR |= SCB_SCR_SLEEPONEXIT_Msk;
-}
+void Interrupt_enableSleepOnIsrExit(void) { SCB->SCR |= SCB_SCR_SLEEPONEXIT_Msk; }
 
-void Interrupt_disableSleepOnIsrExit(void) {
-    SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk;
-}
+void Interrupt_disableSleepOnIsrExit(void) { SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk; }

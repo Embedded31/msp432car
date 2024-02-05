@@ -51,29 +51,27 @@ static bool SysCtlSRAMBankValid(uint8_t sramBank) {
 }
 
 static bool SysCtlSRAMBankValidRet(uint8_t sramBank) {
-    sramBank &= ~(SYSCTL_SRAM_BANK7 & SYSCTL_SRAM_BANK6 & SYSCTL_SRAM_BANK5 &
-                  SYSCTL_SRAM_BANK4 & SYSCTL_SRAM_BANK3 & SYSCTL_SRAM_BANK2 &
-                  SYSCTL_SRAM_BANK1);
+    sramBank &= ~(SYSCTL_SRAM_BANK7 & SYSCTL_SRAM_BANK6 & SYSCTL_SRAM_BANK5 & SYSCTL_SRAM_BANK4 &
+                  SYSCTL_SRAM_BANK3 & SYSCTL_SRAM_BANK2 & SYSCTL_SRAM_BANK1);
 
     return (sramBank == 0);
 }
 
 static bool SysCtlPeripheralIsValid(uint16_t hwPeripheral) {
-    hwPeripheral &= ~(
-        SYSCTL_PERIPH_DMA & SYSCTL_PERIPH_WDT & SYSCTL_PERIPH_ADC &
-        SYSCTL_PERIPH_EUSCIB3 & SYSCTL_PERIPH_EUSCIB2 & SYSCTL_PERIPH_EUSCIB1 &
-        SYSCTL_PERIPH_EUSCIB0 & SYSCTL_PERIPH_EUSCIA3 & SYSCTL_PERIPH_EUSCIA2 &
-        SYSCTL_PERIPH_EUSCIA1 & SYSCTL_PERIPH_EUSCIA0 &
-        SYSCTL_PERIPH_TIMER32_0_MODULE & SYSCTL_PERIPH_TIMER16_3 &
-        SYSCTL_PERIPH_TIMER16_2 & SYSCTL_PERIPH_TIMER16_2 &
-        SYSCTL_PERIPH_TIMER16_1 & SYSCTL_PERIPH_TIMER16_0);
+    hwPeripheral &=
+        ~(SYSCTL_PERIPH_DMA & SYSCTL_PERIPH_WDT & SYSCTL_PERIPH_ADC & SYSCTL_PERIPH_EUSCIB3 &
+          SYSCTL_PERIPH_EUSCIB2 & SYSCTL_PERIPH_EUSCIB1 & SYSCTL_PERIPH_EUSCIB0 &
+          SYSCTL_PERIPH_EUSCIA3 & SYSCTL_PERIPH_EUSCIA2 & SYSCTL_PERIPH_EUSCIA1 &
+          SYSCTL_PERIPH_EUSCIA0 & SYSCTL_PERIPH_TIMER32_0_MODULE & SYSCTL_PERIPH_TIMER16_3 &
+          SYSCTL_PERIPH_TIMER16_2 & SYSCTL_PERIPH_TIMER16_2 & SYSCTL_PERIPH_TIMER16_1 &
+          SYSCTL_PERIPH_TIMER16_0);
 
     return (hwPeripheral == 0);
 }
 #endif
 
-void SysCtl_getTLVInfo(uint_fast8_t tag, uint_fast8_t instance,
-                       uint_fast8_t *length, uint32_t **data_address) {
+void SysCtl_getTLVInfo(uint_fast8_t tag, uint_fast8_t instance, uint_fast8_t *length,
+                       uint32_t **data_address) {
     /* TLV Structure Start Address */
     uint32_t *TLV_address = (uint32_t *)TLV_START;
 
@@ -112,18 +110,13 @@ uint_least32_t SysCtl_getSRAMSize(void) { return SYSCTL->SRAM_SIZE; }
 
 uint_least32_t SysCtl_getFlashSize(void) { return SYSCTL->FLASH_SIZE; }
 
-void SysCtl_disableNMISource(uint_fast8_t flags) {
-    SYSCTL->NMI_CTLSTAT &= ~(flags);
-}
+void SysCtl_disableNMISource(uint_fast8_t flags) { SYSCTL->NMI_CTLSTAT &= ~(flags); }
 
-void SysCtl_enableNMISource(uint_fast8_t flags) {
-    SYSCTL->NMI_CTLSTAT |= flags;
-}
+void SysCtl_enableNMISource(uint_fast8_t flags) { SYSCTL->NMI_CTLSTAT |= flags; }
 
 uint_fast8_t SysCtl_getNMISourceStatus(void) {
-    return SYSCTL->NMI_CTLSTAT &
-           (SYSCTL_NMI_CTLSTAT_CS_FLG | SYSCTL_NMI_CTLSTAT_PSS_FLG |
-            SYSCTL_NMI_CTLSTAT_PCM_FLG | SYSCTL_NMI_CTLSTAT_PIN_FLG);
+    return SYSCTL->NMI_CTLSTAT & (SYSCTL_NMI_CTLSTAT_CS_FLG | SYSCTL_NMI_CTLSTAT_PSS_FLG |
+                                  SYSCTL_NMI_CTLSTAT_PCM_FLG | SYSCTL_NMI_CTLSTAT_PIN_FLG);
 }
 
 void SysCtl_enableSRAMBank(uint_fast8_t sramBank) {
@@ -145,16 +138,15 @@ void SysCtl_disableSRAMBank(uint_fast8_t sramBank) {
 
     switch (sramBank) {
     case SYSCTL_SRAM_BANK7:
-        sramBank = SYSCTL_SRAM_BANK6 + SYSCTL_SRAM_BANK5 + SYSCTL_SRAM_BANK4 +
-                   SYSCTL_SRAM_BANK3 + SYSCTL_SRAM_BANK2 + SYSCTL_SRAM_BANK1;
-        break;
-    case SYSCTL_SRAM_BANK6:
-        sramBank = SYSCTL_SRAM_BANK5 + SYSCTL_SRAM_BANK4 + SYSCTL_SRAM_BANK3 +
+        sramBank = SYSCTL_SRAM_BANK6 + SYSCTL_SRAM_BANK5 + SYSCTL_SRAM_BANK4 + SYSCTL_SRAM_BANK3 +
                    SYSCTL_SRAM_BANK2 + SYSCTL_SRAM_BANK1;
         break;
-    case SYSCTL_SRAM_BANK5:
-        sramBank = SYSCTL_SRAM_BANK4 + SYSCTL_SRAM_BANK3 + SYSCTL_SRAM_BANK2 +
+    case SYSCTL_SRAM_BANK6:
+        sramBank = SYSCTL_SRAM_BANK5 + SYSCTL_SRAM_BANK4 + SYSCTL_SRAM_BANK3 + SYSCTL_SRAM_BANK2 +
                    SYSCTL_SRAM_BANK1;
+        break;
+    case SYSCTL_SRAM_BANK5:
+        sramBank = SYSCTL_SRAM_BANK4 + SYSCTL_SRAM_BANK3 + SYSCTL_SRAM_BANK2 + SYSCTL_SRAM_BANK1;
         break;
     case SYSCTL_SRAM_BANK4:
         sramBank = SYSCTL_SRAM_BANK3 + SYSCTL_SRAM_BANK2 + SYSCTL_SRAM_BANK1;
@@ -225,16 +217,11 @@ void SysCtl_setWDTPasswordViolationResetType(uint_fast8_t resetType) {
         SYSCTL->WDTRESET_CTL &= ~SYSCTL_WDTRESET_CTL_VIOLATION;
 }
 
-void SysCtl_enableGlitchFilter(void) {
-    SYSCTL->DIO_GLTFLT_CTL |= SYSCTL_DIO_GLTFLT_CTL_GLTCH_EN;
-}
+void SysCtl_enableGlitchFilter(void) { SYSCTL->DIO_GLTFLT_CTL |= SYSCTL_DIO_GLTFLT_CTL_GLTCH_EN; }
 
-void SysCtl_disableGlitchFilter(void) {
-    SYSCTL->DIO_GLTFLT_CTL &= ~SYSCTL_DIO_GLTFLT_CTL_GLTCH_EN;
-}
+void SysCtl_disableGlitchFilter(void) { SYSCTL->DIO_GLTFLT_CTL &= ~SYSCTL_DIO_GLTFLT_CTL_GLTCH_EN; }
 
-uint_fast16_t SysCtl_getTempCalibrationConstant(uint32_t refVoltage,
-                                                uint32_t temperature) {
+uint_fast16_t SysCtl_getTempCalibrationConstant(uint32_t refVoltage, uint32_t temperature) {
     return HWREG16(TLV_BASE + refVoltage + temperature);
 }
 

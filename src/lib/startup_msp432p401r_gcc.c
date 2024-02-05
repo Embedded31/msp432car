@@ -56,104 +56,57 @@ extern void Reset_Handler(void) __attribute__((weak));
 
 /* Cortex-M4 Processor Exceptions */
 extern void NMI_Handler(void) __attribute__((weak, alias("Default_Handler")));
-extern void HardFault_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void MemManage_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void BusFault_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void UsageFault_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
+extern void HardFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
+extern void MemManage_Handler(void) __attribute__((weak, alias("Default_Handler")));
+extern void BusFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
+extern void UsageFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
 extern void SVC_Handler(void) __attribute__((weak, alias("Default_Handler")));
-extern void DebugMon_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PendSV_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
+extern void DebugMon_Handler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PendSV_Handler(void) __attribute__((weak, alias("Default_Handler")));
 
 /* device specific interrupt handler */
-extern void SysTick_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PSS_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
+extern void SysTick_Handler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PSS_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 extern void CS_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
-extern void PCM_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void WDT_A_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void FPU_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void FLCTL_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void COMP_E0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void COMP_E1_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA0_0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA0_N_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA1_0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA1_N_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA2_0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA2_N_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA3_0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void TA3_N_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIA0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIA1_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIA2_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIA3_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIB0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIB1_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIB2_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void EUSCIB3_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void ADC14_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void T32_INT1_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void T32_INT2_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void T32_INTC_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void AES256_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void RTC_C_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void DMA_ERR_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void DMA_INT3_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void DMA_INT2_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void DMA_INT1_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void DMA_INT0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PORT1_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PORT2_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PORT3_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PORT4_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PORT5_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
-extern void PORT6_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
+extern void PCM_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void WDT_A_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void FPU_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void FLCTL_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void COMP_E0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void COMP_E1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA0_0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA0_N_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA1_0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA1_N_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA2_0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA2_N_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA3_0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void TA3_N_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIA0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIA1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIA2_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIA3_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIB0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIB1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIB2_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void EUSCIB3_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void ADC14_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void T32_INT1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void T32_INT2_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void T32_INTC_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void AES256_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void RTC_C_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void DMA_ERR_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void DMA_INT3_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void DMA_INT2_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void DMA_INT1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void DMA_INT0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PORT1_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PORT2_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PORT3_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PORT4_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PORT5_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+extern void PORT6_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 
 /* Interrupt vector table.  Note that the proper constructs must be placed on
  * this to */

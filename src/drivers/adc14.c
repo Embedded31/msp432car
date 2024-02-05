@@ -40,14 +40,13 @@
 
 /* Statics */
 static volatile uint32_t *const _ctlRegs[32] = {
-    &ADC14->MCTL[0],  &ADC14->MCTL[1],  &ADC14->MCTL[2],  &ADC14->MCTL[3],
-    &ADC14->MCTL[4],  &ADC14->MCTL[5],  &ADC14->MCTL[6],  &ADC14->MCTL[7],
-    &ADC14->MCTL[8],  &ADC14->MCTL[9],  &ADC14->MCTL[10], &ADC14->MCTL[11],
-    &ADC14->MCTL[12], &ADC14->MCTL[13], &ADC14->MCTL[14], &ADC14->MCTL[15],
-    &ADC14->MCTL[16], &ADC14->MCTL[17], &ADC14->MCTL[18], &ADC14->MCTL[19],
-    &ADC14->MCTL[20], &ADC14->MCTL[21], &ADC14->MCTL[22], &ADC14->MCTL[23],
-    &ADC14->MCTL[24], &ADC14->MCTL[25], &ADC14->MCTL[26], &ADC14->MCTL[27],
-    &ADC14->MCTL[28], &ADC14->MCTL[29], &ADC14->MCTL[30], &ADC14->MCTL[31]};
+    &ADC14->MCTL[0],  &ADC14->MCTL[1],  &ADC14->MCTL[2],  &ADC14->MCTL[3],  &ADC14->MCTL[4],
+    &ADC14->MCTL[5],  &ADC14->MCTL[6],  &ADC14->MCTL[7],  &ADC14->MCTL[8],  &ADC14->MCTL[9],
+    &ADC14->MCTL[10], &ADC14->MCTL[11], &ADC14->MCTL[12], &ADC14->MCTL[13], &ADC14->MCTL[14],
+    &ADC14->MCTL[15], &ADC14->MCTL[16], &ADC14->MCTL[17], &ADC14->MCTL[18], &ADC14->MCTL[19],
+    &ADC14->MCTL[20], &ADC14->MCTL[21], &ADC14->MCTL[22], &ADC14->MCTL[23], &ADC14->MCTL[24],
+    &ADC14->MCTL[25], &ADC14->MCTL[26], &ADC14->MCTL[27], &ADC14->MCTL[28], &ADC14->MCTL[29],
+    &ADC14->MCTL[30], &ADC14->MCTL[31]};
 
 static uint_fast8_t _getIndexForMemRegister(uint32_t reg) {
     switch (reg) {
@@ -133,13 +132,9 @@ static uint_fast8_t _getIndexForMemRegister(uint32_t reg) {
 //! \return true if conversion is active, false otherwise
 //
 //*****************************************************************************
-static bool ADCIsConversionRunning(void) {
-    return BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_BUSY_OFS);
-}
+static bool ADCIsConversionRunning(void) { return BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_BUSY_OFS); }
 
-void ADC14_enableModule(void) {
-    BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_ON_OFS) = 1;
-}
+void ADC14_enableModule(void) { BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_ON_OFS) = 1; }
 
 bool ADC14_disableModule(void) {
     if (ADCIsConversionRunning())
@@ -174,54 +169,45 @@ bool ADC14_disableSampleTimer(void) {
     return true;
 }
 
-bool ADC14_initModule(uint32_t clockSource, uint32_t clockPredivider,
-                      uint32_t clockDivider, uint32_t internalChannelMask) {
-    ASSERT(clockSource == ADC_CLOCKSOURCE_ADCOSC ||
-           clockSource == ADC_CLOCKSOURCE_SYSOSC ||
-           clockSource == ADC_CLOCKSOURCE_ACLK ||
-           clockSource == ADC_CLOCKSOURCE_MCLK ||
-           clockSource == ADC_CLOCKSOURCE_SMCLK ||
-           clockSource == ADC_CLOCKSOURCE_HSMCLK);
+bool ADC14_initModule(uint32_t clockSource, uint32_t clockPredivider, uint32_t clockDivider,
+                      uint32_t internalChannelMask) {
+    ASSERT(clockSource == ADC_CLOCKSOURCE_ADCOSC || clockSource == ADC_CLOCKSOURCE_SYSOSC ||
+           clockSource == ADC_CLOCKSOURCE_ACLK || clockSource == ADC_CLOCKSOURCE_MCLK ||
+           clockSource == ADC_CLOCKSOURCE_SMCLK || clockSource == ADC_CLOCKSOURCE_HSMCLK);
 
-    ASSERT(clockPredivider == ADC_PREDIVIDER_1 ||
-           clockPredivider == ADC_PREDIVIDER_4 ||
-           clockPredivider == ADC_PREDIVIDER_32 ||
-           clockPredivider == ADC_PREDIVIDER_64);
+    ASSERT(clockPredivider == ADC_PREDIVIDER_1 || clockPredivider == ADC_PREDIVIDER_4 ||
+           clockPredivider == ADC_PREDIVIDER_32 || clockPredivider == ADC_PREDIVIDER_64);
 
     ASSERT(clockDivider == ADC_DIVIDER_1 || clockDivider == ADC_DIVIDER_2 ||
            clockDivider == ADC_DIVIDER_3 || clockDivider == ADC_DIVIDER_4 ||
            clockDivider == ADC_DIVIDER_5 || clockDivider == ADC_DIVIDER_6 ||
            clockDivider == ADC_DIVIDER_7 || clockDivider == ADC_DIVIDER_8);
 
-    ASSERT(!(internalChannelMask &
-             ~(ADC_MAPINTCH3 | ADC_MAPINTCH2 | ADC_MAPINTCH1 | ADC_MAPINTCH0 |
-               ADC_TEMPSENSEMAP | ADC_BATTMAP)));
+    ASSERT(!(internalChannelMask & ~(ADC_MAPINTCH3 | ADC_MAPINTCH2 | ADC_MAPINTCH1 | ADC_MAPINTCH0 |
+                                     ADC_TEMPSENSEMAP | ADC_BATTMAP)));
 
     if (ADCIsConversionRunning())
         return false;
 
-    ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_PDIV_MASK | ADC14_CTL0_DIV_MASK |
-                                   ADC14_CTL0_SSEL_MASK)) |
-                  clockDivider | clockPredivider | clockSource;
+    ADC14->CTL0 =
+        (ADC14->CTL0 & ~(ADC14_CTL0_PDIV_MASK | ADC14_CTL0_DIV_MASK | ADC14_CTL0_SSEL_MASK)) |
+        clockDivider | clockPredivider | clockSource;
 
-    ADC14->CTL1 =
-        (ADC14->CTL1 & ~(ADC_MAPINTCH3 | ADC_MAPINTCH2 | ADC_MAPINTCH1 |
-                         ADC_MAPINTCH0 | ADC_TEMPSENSEMAP | ADC_BATTMAP)) |
-        internalChannelMask;
+    ADC14->CTL1 = (ADC14->CTL1 & ~(ADC_MAPINTCH3 | ADC_MAPINTCH2 | ADC_MAPINTCH1 | ADC_MAPINTCH0 |
+                                   ADC_TEMPSENSEMAP | ADC_BATTMAP)) |
+                  internalChannelMask;
 
     return true;
 }
 
 void ADC14_setResolution(uint32_t resolution) {
-    ASSERT(resolution == ADC_8BIT || resolution == ADC_10BIT ||
-           resolution == ADC_12BIT || resolution == ADC_14BIT);
+    ASSERT(resolution == ADC_8BIT || resolution == ADC_10BIT || resolution == ADC_12BIT ||
+           resolution == ADC_14BIT);
 
     ADC14->CTL1 = (ADC14->CTL1 & ~ADC14_CTL1_RES_MASK) | resolution;
 }
 
-uint_fast32_t ADC14_getResolution(void) {
-    return ADC14->CTL1 & ADC14_CTL1_RES_MASK;
-}
+uint_fast32_t ADC14_getResolution(void) { return ADC14->CTL1 & ADC14_CTL1_RES_MASK; }
 
 bool ADC14_setSampleHoldTrigger(uint32_t source, bool invertSignal) {
 
@@ -234,48 +220,36 @@ bool ADC14_setSampleHoldTrigger(uint32_t source, bool invertSignal) {
         return false;
 
     if (invertSignal) {
-        ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_ISSH | ADC14_CTL0_SHS_MASK)) |
-                      source | ADC14_CTL0_ISSH;
-    } else {
         ADC14->CTL0 =
-            (ADC14->CTL0 & ~(ADC14_CTL0_ISSH | ADC14_CTL0_SHS_MASK)) | source;
+            (ADC14->CTL0 & ~(ADC14_CTL0_ISSH | ADC14_CTL0_SHS_MASK)) | source | ADC14_CTL0_ISSH;
+    } else {
+        ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_ISSH | ADC14_CTL0_SHS_MASK)) | source;
     }
 
     return true;
 }
 
-bool ADC14_setSampleHoldTime(uint32_t firstPulseWidth,
-                             uint32_t secondPulseWidth) {
-    ASSERT(firstPulseWidth == ADC_PULSE_WIDTH_4 ||
-           firstPulseWidth == ADC_PULSE_WIDTH_8 ||
-           firstPulseWidth == ADC_PULSE_WIDTH_16 ||
-           firstPulseWidth == ADC_PULSE_WIDTH_32 ||
-           firstPulseWidth == ADC_PULSE_WIDTH_64 ||
-           firstPulseWidth == ADC_PULSE_WIDTH_96 ||
-           firstPulseWidth == ADC_PULSE_WIDTH_128 ||
-           firstPulseWidth == ADC_PULSE_WIDTH_192);
+bool ADC14_setSampleHoldTime(uint32_t firstPulseWidth, uint32_t secondPulseWidth) {
+    ASSERT(firstPulseWidth == ADC_PULSE_WIDTH_4 || firstPulseWidth == ADC_PULSE_WIDTH_8 ||
+           firstPulseWidth == ADC_PULSE_WIDTH_16 || firstPulseWidth == ADC_PULSE_WIDTH_32 ||
+           firstPulseWidth == ADC_PULSE_WIDTH_64 || firstPulseWidth == ADC_PULSE_WIDTH_96 ||
+           firstPulseWidth == ADC_PULSE_WIDTH_128 || firstPulseWidth == ADC_PULSE_WIDTH_192);
 
-    ASSERT(secondPulseWidth == ADC_PULSE_WIDTH_4 ||
-           secondPulseWidth == ADC_PULSE_WIDTH_8 ||
-           secondPulseWidth == ADC_PULSE_WIDTH_16 ||
-           secondPulseWidth == ADC_PULSE_WIDTH_32 ||
-           secondPulseWidth == ADC_PULSE_WIDTH_64 ||
-           secondPulseWidth == ADC_PULSE_WIDTH_96 ||
-           secondPulseWidth == ADC_PULSE_WIDTH_128 ||
-           secondPulseWidth == ADC_PULSE_WIDTH_192);
+    ASSERT(secondPulseWidth == ADC_PULSE_WIDTH_4 || secondPulseWidth == ADC_PULSE_WIDTH_8 ||
+           secondPulseWidth == ADC_PULSE_WIDTH_16 || secondPulseWidth == ADC_PULSE_WIDTH_32 ||
+           secondPulseWidth == ADC_PULSE_WIDTH_64 || secondPulseWidth == ADC_PULSE_WIDTH_96 ||
+           secondPulseWidth == ADC_PULSE_WIDTH_128 || secondPulseWidth == ADC_PULSE_WIDTH_192);
 
     if (ADCIsConversionRunning())
         return false;
 
-    ADC14->CTL0 =
-        (ADC14->CTL0 & ~(ADC14_CTL0_SHT0_MASK | ADC14_CTL0_SHT1_MASK)) |
-        secondPulseWidth | (firstPulseWidth >> 4);
+    ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_SHT0_MASK | ADC14_CTL0_SHT1_MASK)) |
+                  secondPulseWidth | (firstPulseWidth >> 4);
 
     return true;
 }
 
-bool ADC14_configureMultiSequenceMode(uint32_t memoryStart, uint32_t memoryEnd,
-                                      bool repeatMode) {
+bool ADC14_configureMultiSequenceMode(uint32_t memoryStart, uint32_t memoryEnd, bool repeatMode) {
     uint32_t ii;
 
     ASSERT(_getIndexForMemRegister(memoryStart) != ADC_INVALID_MEM &&
@@ -299,11 +273,9 @@ bool ADC14_configureMultiSequenceMode(uint32_t memoryStart, uint32_t memoryEnd,
 
         /* Setting multiple sample mode */
         if (!repeatMode) {
-            ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) |
-                          (ADC14_CTL0_CONSEQ_1);
+            ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) | (ADC14_CTL0_CONSEQ_1);
         } else {
-            ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) |
-                          (ADC14_CTL0_CONSEQ_3);
+            ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) | (ADC14_CTL0_CONSEQ_3);
         }
 
         return true;
@@ -312,8 +284,7 @@ bool ADC14_configureMultiSequenceMode(uint32_t memoryStart, uint32_t memoryEnd,
     }
 }
 
-bool ADC14_configureSingleSampleMode(uint32_t memoryDestination,
-                                     bool repeatMode) {
+bool ADC14_configureSingleSampleMode(uint32_t memoryDestination, bool repeatMode) {
     ASSERT(_getIndexForMemRegister(memoryDestination) != 32);
 
     if (ADCIsConversionRunning())
@@ -325,19 +296,16 @@ bool ADC14_configureSingleSampleMode(uint32_t memoryDestination,
 
     /* Setting single sample mode */
     if (!repeatMode) {
-        ADC14->CTL0 =
-            (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) | (ADC14_CTL0_CONSEQ_0);
+        ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) | (ADC14_CTL0_CONSEQ_0);
     } else {
-        ADC14->CTL0 =
-            (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) | (ADC14_CTL0_CONSEQ_2);
+        ADC14->CTL0 = (ADC14->CTL0 & ~(ADC14_CTL0_CONSEQ_MASK)) | (ADC14_CTL0_CONSEQ_2);
     }
 
     return true;
 }
 
 bool ADC14_enableConversion(void) {
-    if (ADCIsConversionRunning() ||
-        !BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_ON_OFS))
+    if (ADCIsConversionRunning() || !BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_ON_OFS))
         return false;
 
     ADC14->CTL0 |= (ADC14_CTL0_ENC);
@@ -358,17 +326,12 @@ bool ADC14_toggleConversionTrigger(void) {
     return true;
 }
 
-void ADC14_disableConversion(void) {
-    ADC14->CTL0 &= ~(ADC14_CTL0_SC | ADC14_CTL0_ENC);
-}
+void ADC14_disableConversion(void) { ADC14->CTL0 &= ~(ADC14_CTL0_SC | ADC14_CTL0_ENC); }
 
-bool ADC14_isBusy(void) {
-    return BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_BUSY_OFS);
-}
+bool ADC14_isBusy(void) { return BITBAND_PERI(ADC14->CTL0, ADC14_CTL0_BUSY_OFS); }
 
 bool ADC14_configureConversionMemory(uint32_t memorySelect, uint32_t refSelect,
-                                     uint32_t channelSelect,
-                                     bool differntialMode) {
+                                     uint32_t channelSelect, bool differntialMode) {
     uint32_t currentReg, ii;
     uint32_t *curReg;
 
@@ -394,15 +357,13 @@ bool ADC14_configureConversionMemory(uint32_t memorySelect, uint32_t refSelect,
             curReg = (uint32_t *)_ctlRegs[currRegIndex];
 
             if (differntialMode) {
-                (*curReg) =
-                    ((*curReg) & ~(ADC14_MCTLN_VRSEL_MASK |
-                                   ADC14_MCTLN_INCH_MASK | ADC14_MCTLN_DIF)) |
-                    (channelSelect | refSelect | ADC14_MCTLN_DIF);
+                (*curReg) = ((*curReg) &
+                             ~(ADC14_MCTLN_VRSEL_MASK | ADC14_MCTLN_INCH_MASK | ADC14_MCTLN_DIF)) |
+                            (channelSelect | refSelect | ADC14_MCTLN_DIF);
             } else {
-                (*curReg) =
-                    ((*curReg) & ~(ADC14_MCTLN_VRSEL_MASK |
-                                   ADC14_MCTLN_INCH_MASK | ADC14_MCTLN_DIF)) |
-                    (channelSelect | refSelect);
+                (*curReg) = ((*curReg) &
+                             ~(ADC14_MCTLN_VRSEL_MASK | ADC14_MCTLN_INCH_MASK | ADC14_MCTLN_DIF)) |
+                            (channelSelect | refSelect);
             }
         } else {
             return false;
@@ -412,8 +373,7 @@ bool ADC14_configureConversionMemory(uint32_t memorySelect, uint32_t refSelect,
     return true;
 }
 
-bool ADC14_enableComparatorWindow(uint32_t memorySelect,
-                                  uint32_t windowSelect) {
+bool ADC14_enableComparatorWindow(uint32_t memorySelect, uint32_t windowSelect) {
     uint32_t currentReg, ii;
     uint32_t *curRegPoint;
 
@@ -439,8 +399,7 @@ bool ADC14_enableComparatorWindow(uint32_t memorySelect,
             curRegPoint = (uint32_t *)_ctlRegs[currRegIndex];
 
             if (windowSelect == ADC_COMP_WINDOW0) {
-                (*curRegPoint) = ((*curRegPoint) &
-                                  ~(ADC14_MCTLN_WINC | ADC14_MCTLN_WINCTH)) |
+                (*curRegPoint) = ((*curRegPoint) & ~(ADC14_MCTLN_WINC | ADC14_MCTLN_WINCTH)) |
                                  (ADC14_MCTLN_WINC);
             } else if (windowSelect == ADC_COMP_WINDOW1) {
                 (*curRegPoint) |= ADC14_MCTLN_WINC | ADC14_MCTLN_WINCTH;
@@ -479,8 +438,7 @@ bool ADC14_disableComparatorWindow(uint32_t memorySelect) {
     return true;
 }
 
-bool ADC14_setComparatorWindowValue(uint32_t window, int16_t low,
-                                    int16_t high) {
+bool ADC14_setComparatorWindowValue(uint32_t window, int16_t low, int16_t high) {
     if (ADCIsConversionRunning())
         return false;
 
@@ -543,8 +501,7 @@ void ADC14_getMultiSequenceResult(uint16_t *res) {
     }
 }
 
-void ADC14_getResultArray(uint32_t memoryStart, uint32_t memoryEnd,
-                          uint16_t *res) {
+void ADC14_getResultArray(uint32_t memoryStart, uint32_t memoryEnd, uint16_t *res) {
     uint32_t ii = 0;
     uint32_t *firstPoint, *secondPoint;
 
@@ -601,12 +558,10 @@ bool ADC14_setPowerMode(uint32_t adcPowerMode) {
 
     switch (adcPowerMode) {
     case ADC_UNRESTRICTED_POWER_MODE:
-        ADC14->CTL1 =
-            (ADC14->CTL1 & ~(ADC14_CTL1_PWRMD_MASK)) | (ADC14_CTL1_PWRMD_0);
+        ADC14->CTL1 = (ADC14->CTL1 & ~(ADC14_CTL1_PWRMD_MASK)) | (ADC14_CTL1_PWRMD_0);
         break;
     case ADC_ULTRA_LOW_POWER_MODE:
-        ADC14->CTL1 =
-            (ADC14->CTL1 & ~(ADC14_CTL1_PWRMD_MASK)) | (ADC14_CTL1_PWRMD_2);
+        ADC14->CTL1 = (ADC14->CTL1 & ~(ADC14_CTL1_PWRMD_MASK)) | (ADC14_CTL1_PWRMD_2);
         break;
     default:
         ASSERT(false);
