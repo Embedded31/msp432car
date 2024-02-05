@@ -74,22 +74,16 @@ void BT_HAL_init() {
 
     /* [2] Configure and enable the UART module */
     const eUSCI_UART_ConfigV1 BT_uartConfig = {
-        // use SMCLK as clock source
-        EUSCI_A_UART_CLOCKSOURCE_SMCLK,
-        // scale SMCLK to obtain a 9600 Baud Rate
-        156,
-        // set the first & second modulation stages
-        4, 0,
-        // disable the parity error check
-        EUSCI_A_UART_NO_PARITY,
-        // least significant bit first mode
-        EUSCI_A_UART_LSB_FIRST,
-        // duration of the pause between the transmission of two bytes
-        EUSCI_A_UART_ONE_STOP_BIT,
-        // use standard UART mode
-        EUSCI_A_UART_MODE,
-        // use oversampling for enhanced baud rate generation
-        EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION};
+            EUSCI_A_UART_CLOCKSOURCE_SMCLK,                 /* use SMCLK as clock source             */
+            156,                                            /* scale SMCLK for a 9600 Baud Rate      */
+            4,                                              /* set first modulation stage            */
+            0,                                              /* set second modulation stage           */
+            EUSCI_A_UART_NO_PARITY,                         /* disable parity error check            */
+            EUSCI_A_UART_LSB_FIRST,                         /* least significant bit first           */
+            EUSCI_A_UART_ONE_STOP_BIT,                      /* transmission pause between two bytes  */
+            EUSCI_A_UART_MODE,                              /* use standard UART mode                */
+            EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION   /* oversampling for baud rate generation */
+    };
     UART_initModule(BT_EUSCI_BASE, &BT_uartConfig);
     UART_enableModule(BT_EUSCI_BASE);
 
