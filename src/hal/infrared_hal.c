@@ -41,7 +41,7 @@
 #define IR_PIN GPIO_PIN7        /* Pin of the infrared signal                     */
 #define IR_INVALID_THRESHOLD 50 /* Time (ms) after which the reception is aborted */
 
-IRCallback callback = NULL;        /* Function to call after the reception of a message */
+IRCallback irCallback = NULL;      /* Function to call after the reception of a message */
 volatile uint16_t lastFallingEdge; /* Tick of the last signal rising edge               */
 volatile uint32_t message;         /* Entire 32 bit IR message                          */
 volatile uint8_t bitIndex;         /* Index of the next bit to write                    */
@@ -83,10 +83,10 @@ void IR_HAL_init() {
 
     // [2] Timer configuration
     const Timer_A_ContinuousModeConfig contConfig = {
-        TIMER_A_CLOCKSOURCE_ACLK,       // 32768 Hz
-        TIMER_A_CLOCKSOURCE_DIVIDER_4,  // 32768 / 4 = 8192 Hz
-        TIMER_A_TAIE_INTERRUPT_DISABLE, // disable overflow interrupt
-        TIMER_A_DO_CLEAR                // clear the counter on overflow
+            TIMER_A_CLOCKSOURCE_ACLK,       // 32768 Hz
+            TIMER_A_CLOCKSOURCE_DIVIDER_4,  // 32768 / 4 = 8192 Hz
+            TIMER_A_TAIE_INTERRUPT_DISABLE, // disable overflow interrupt
+            TIMER_A_DO_CLEAR                // clear the counter on overflow
     };
     Timer_A_configureContinuousMode(TIMER_A3_BASE, &contConfig);
     Timer_A_startCounter(TIMER_A3_BASE, TIMER_A_CONTINUOUS_MODE);
@@ -115,11 +115,11 @@ void IR_HAL_init() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
+ *          IRCallback      irCallback      Points to the given callback function
  *
  *  NOTE:
  */
-void IR_HAL_registerMessageCallback(IRCallback messageCallback) { callback = messageCallback; }
+void IR_HAL_registerMessageCallback(IRCallback callback) { irCallback = callback; }
 
 /*F************************************************************************************************
  * NAME: void IR_HAL_parseAndForward()
@@ -133,7 +133,7 @@ void IR_HAL_registerMessageCallback(IRCallback messageCallback) { callback = mes
  *          None
  *      GLOBALS:
  *          uint32_t    message     The 32-bit infrared message
- *          IRCallback  callback    The function to execute on command reception
+ *          IRCallback  irCallback  The function to execute on command reception
  *
  *  OUTPUTS:
  *      PARAMETERS:
@@ -153,8 +153,8 @@ void IR_HAL_parseAndForward() {
     bool isValid = !(address & address_inv) && !(command & command_inv);
 
     // if there is a registered callback function call it
-    if (callback != NULL) {
-        callback((IRCommand)command, isValid);
+    if (irCallback != NULL) {
+        irCallback((IRCommand)command, isValid);
     }
 
     // reset counters
