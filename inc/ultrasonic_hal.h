@@ -8,8 +8,7 @@
  * PUBLIC FUNCTIONS:
  *      void        US_HAL_init()
  *      void        US_HAL_triggerMeasurement()
- *      bool        US_HAL_isMeasurementReady()
- *      uint16_t    US_HAL_getMeasurement()
+ *      void        US_HAL_registerMeasurementCallback(USCallback callback);
  *
  * NOTES:
  *
@@ -19,14 +18,26 @@
  *
  * CHANGES:
  * DATE         AUTHOR          DETAIL
+ * 10 Feb 2024  Andrea Piccin   Introduced callback mechanism
  */
 #include <stdint.h>
 
 #ifndef ULTRASONIC_HAL_H
 #define ULTRASONIC_HAL_H
 
-#define US_RESULT_INVALID 0            /* Value to be returned if the result isn't ready    */
 #define US_RESULT_NO_OBJECT UINT16_MAX /* Value to be returned if no object is detected     */
+
+/*T************************************************************************************************
+ * NAME: USCallback
+ *
+ * DESCRIPTION:
+ *      It's a pointer to a function that manages the ultrasonic distance measurement when ready
+ *
+ * SPECIFICATIONS:
+ *      Type:   void*
+ *      Args:   uint16_t    distance     value of the measurement
+ */
+typedef void (*USCallback)(uint16_t distance);
 
 /*F************************************************************************************************
  * NAME: void US_HAL_init()
@@ -73,14 +84,14 @@ void US_HAL_init();
 void US_HAL_triggerMeasurement();
 
 /*F************************************************************************************************
- * NAME: bool US_HAL_isMeasurementReady()
+ * NAME: void US_HAL_registerMeasurementCallback(USCallback callback)
  *
  * DESCRIPTION:
- *      Check if there is a terminated measurement.
+ *      Set the passed USCallback as the function to call when a new measurement is ready
  *
  * INPUTS:
  *      PARAMETERS:
- *          None
+ *          USCallback  callback     Function to register as callback
  *      GLOBALS:
  *          None
  *
@@ -89,39 +100,9 @@ void US_HAL_triggerMeasurement();
  *          None
  *      GLOBALS:
  *          None
- *      RETURN:
- *          Type:   bool
- *          Value:  true if there is a valid measurement, false otherwise
  *
  *  NOTE:
  */
-bool US_HAL_isMeasurementReady();
-
-/*F************************************************************************************************
- * NAME: uint16_t US_HAL_getMeasurement()
- *
- * DESCRIPTION:
- *      Retrieves the last measurement.
- *
- * INPUTS:
- *      PARAMETERS:
- *          None
- *      GLOBALS:
- *          None
- *
- *  OUTPUTS:
- *      PARAMETERS:
- *          None
- *      GLOBALS:
- *          None
- *      RETURN:
- *          Type:   uint16_t        unsigned 16-bit integer
- *          Value:  the distance from the ahead object in cm, US_RESULT_INVALID if the
- *                  measurement wasn't ready and US_RESULT_NO_OBJ if nothing is detected.
- *
- *  NOTE:
- *      The suggested range is between 4cm and 200cm.
- */
-uint16_t US_HAL_getMeasurement();
+void US_HAL_registerMeasurementCallback(USCallback callback);
 
 #endif // ULTRASONIC_HAL_H
