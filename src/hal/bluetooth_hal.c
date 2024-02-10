@@ -51,7 +51,7 @@
  */
 typedef enum { TX_IDLE, TX_MESSAGE, TX_CR, TX_LF } TxState;
 
-BTCallback callback;                                 /* To call when a new message is ready */
+BTCallback btCallback;                                 /* To call when a new message is ready */
 volatile char incomingMessageBuffer[BT_BUFFER_SIZE]; /* Contains the incoming message       */
 volatile uint16_t currentRxIndex;                    /* Index of the current char to read   */
 volatile Queue *outgoingMessagesQueue;               /* Queue of the messages to send       */
@@ -82,7 +82,7 @@ volatile TxState currentTxState;                     /* State the transmission  
  *          Queue       outgoingMessagesQueue       Initialised
  *          char*       currentTxPointer            Set to NULL
  *          TxState     currentTxState              Set to TX_IDLE
- *          BTCallback  callback                    Set to NULL
+ *          BTCallback  btCallback                  Set to NULL
  *
  *  NOTE:
  */
@@ -112,7 +112,7 @@ void BT_HAL_init() {
     outgoingMessagesQueue = queue_create();
     currentTxPointer = NULL;
     currentTxState = TX_IDLE;
-    callback = NULL;
+    btCallback = NULL;
 
     /* [4] Enable interrupts */
     UART_enableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
@@ -162,7 +162,7 @@ void BT_HAL_sendMessage(const char *data) {
  *
  * INPUTS:
  *      PARAMETERS:
- *          BTCallback      messageCallback        The function to register as callback
+ *          BTCallback      callback        The function to register as callback
  *      GLOBALS:
  *          None
  *
@@ -170,11 +170,11 @@ void BT_HAL_sendMessage(const char *data) {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          BTCallback      callback                Set to messageCallback
+ *          BTCallback      btCallback      Set to callback
  *
  *  NOTE:
  */
-void BT_HAL_registerMessageCallback(BTCallback messageCallback) { callback = messageCallback; }
+void BT_HAL_registerMessageCallback(BTCallback callback) { btCallback = callback; }
 
 /*F************************************************************************************************
  * NAME: void BT_HAL_forwardAndReset()
@@ -188,7 +188,7 @@ void BT_HAL_registerMessageCallback(BTCallback messageCallback) { callback = mes
  *          None
  *      GLOBALS:
  *          char*       incomingMessageBuffer       The read string
- *          BTCallback  callback                    The function to execute
+ *          BTCallback  btCallback                  The function to execute
  *
  *  OUTPUTS:
  *      PARAMETERS:
@@ -200,8 +200,8 @@ void BT_HAL_registerMessageCallback(BTCallback messageCallback) { callback = mes
  */
 void BT_HAL_forwardAndReset() {
     UART_disableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
-    if (callback != NULL)
-        callback(incomingMessageBuffer);
+    if (btCallback != NULL)
+        btCallback(incomingMessageBuffer);
     currentRxIndex = 0;
     UART_enableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
 }
