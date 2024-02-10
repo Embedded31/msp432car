@@ -113,10 +113,9 @@ void BT_HAL_init() {
     currentTxPointer = NULL;
     currentTxState = TX_IDLE;
     callback = NULL;
-    s
 
-        /* [4] Enable interrupts */
-        UART_enableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
+    /* [4] Enable interrupts */
+    UART_enableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
     Interrupt_enableInterrupt(BT_EUSCI_INT);
     Interrupt_enableMaster();
 }
