@@ -42,8 +42,8 @@
 //
 //*****************************************************************************
 
+#include "../../inc/msp.h"
 #include <stdint.h>
-#include <ti/devices/msp432p4xx/inc/msp.h>
 
 /*--------------------- Configuration Instructions ----------------------------
    1. If you prefer to halt the Watchdog Timer, set __HALT_WDT to 1:
@@ -87,8 +87,7 @@
 /*----------------------------------------------------------------------------
    Clock Variable definitions
  *---------------------------------------------------------------------------*/
-uint32_t SystemCoreClock =
-    __SYSTEM_CLOCK; /*!< System Clock Frequency (Core Clock)*/
+uint32_t SystemCoreClock = __SYSTEM_CLOCK; /*!< System Clock Frequency (Core Clock)*/
 
 /**
  * Update SystemCoreClock variable
@@ -100,8 +99,7 @@ uint32_t SystemCoreClock =
  *         retrieved from cpu registers.
  */
 void SystemCoreClockUpdate(void) {
-    uint32_t source = 0, divider = 0, dividerValue = 0, centeredFreq = 0,
-             calVal = 0;
+    uint32_t source = 0, divider = 0, dividerValue = 0, centeredFreq = 0, calVal = 0;
     int16_t dcoTune = 0;
     float dcoConst = 0.0;
 
@@ -184,8 +182,7 @@ void SystemCoreClockUpdate(void) {
 
             SystemCoreClock =
                 (uint32_t)((centeredFreq) /
-                           (1 - ((dcoConst * dcoTune) /
-                                 (8 * (1 + dcoConst * (768 - calVal))))));
+                           (1 - ((dcoConst * dcoTune) / (8 * (1 + dcoConst * (768 - calVal))))));
         }
         break;
     case CS_CTL1_SELM__MODOSC:
@@ -261,16 +258,13 @@ void SystemInit(void) {
     // DCO = 1.5 MHz; MCLK = source
     CS->KEY = CS_KEY_VAL;         // Unlock CS module for register access
     CS->CTL0 = CS_CTL0_DCORSEL_0; // Set DCO to 1.5MHz
-    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) |
-               CS_CTL1_SELM__DCOCLK;
+    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) | CS_CTL1_SELM__DCOCLK;
     // Select MCLK as DCO source
     CS->KEY = 0;
 
     // Set Flash Bank read buffering
-    FLCTL->BANK0_RDCTL =
-        FLCTL->BANK0_RDCTL & ~(FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
-    FLCTL->BANK1_RDCTL =
-        FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
+    FLCTL->BANK0_RDCTL = FLCTL->BANK0_RDCTL & ~(FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
+    FLCTL->BANK1_RDCTL = FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
 
 #elif (__SYSTEM_CLOCK == 3000000) // 3 MHz
 // Default VCORE is LDO VCORE0 so no change necessary
@@ -289,16 +283,13 @@ void SystemInit(void) {
     // DCO = 3 MHz; MCLK = source
     CS->KEY = CS_KEY_VAL;         // Unlock CS module for register access
     CS->CTL0 = CS_CTL0_DCORSEL_1; // Set DCO to 1.5MHz
-    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) |
-               CS_CTL1_SELM__DCOCLK;
+    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) | CS_CTL1_SELM__DCOCLK;
     // Select MCLK as DCO source
     CS->KEY = 0;
 
     // Set Flash Bank read buffering
-    FLCTL->BANK0_RDCTL =
-        FLCTL->BANK0_RDCTL & ~(FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
-    FLCTL->BANK1_RDCTL =
-        FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
+    FLCTL->BANK0_RDCTL = FLCTL->BANK0_RDCTL & ~(FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
+    FLCTL->BANK1_RDCTL = FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
 
 #elif (__SYSTEM_CLOCK == 12000000) // 12 MHz
 // Default VCORE is LDO VCORE0 so no change necessary
@@ -317,16 +308,13 @@ void SystemInit(void) {
     // DCO = 12 MHz; MCLK = source
     CS->KEY = CS_KEY_VAL;         // Unlock CS module for register access
     CS->CTL0 = CS_CTL0_DCORSEL_3; // Set DCO to 12MHz
-    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) |
-               CS_CTL1_SELM__DCOCLK;
+    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) | CS_CTL1_SELM__DCOCLK;
     // Select MCLK as DCO source
     CS->KEY = 0;
 
     // Set Flash Bank read buffering
-    FLCTL->BANK0_RDCTL =
-        FLCTL->BANK0_RDCTL & ~(FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
-    FLCTL->BANK1_RDCTL =
-        FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
+    FLCTL->BANK0_RDCTL = FLCTL->BANK0_RDCTL & ~(FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
+    FLCTL->BANK1_RDCTL = FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
 
 #elif (__SYSTEM_CLOCK == 24000000) // 24 MHz
 // Default VCORE is LDO VCORE0 so no change necessary
@@ -341,24 +329,21 @@ void SystemInit(void) {
 #endif
 
     // 1 flash wait state (BANK0 VCORE0 max is 12 MHz)
-    FLCTL->BANK0_RDCTL = (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_WAIT_MASK) |
-                         FLCTL_BANK0_RDCTL_WAIT_1;
-    FLCTL->BANK1_RDCTL = (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_WAIT_MASK) |
-                         FLCTL_BANK1_RDCTL_WAIT_1;
+    FLCTL->BANK0_RDCTL =
+        (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_WAIT_MASK) | FLCTL_BANK0_RDCTL_WAIT_1;
+    FLCTL->BANK1_RDCTL =
+        (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_WAIT_MASK) | FLCTL_BANK1_RDCTL_WAIT_1;
 
     // DCO = 24 MHz; MCLK = source
     CS->KEY = CS_KEY_VAL;         // Unlock CS module for register access
     CS->CTL0 = CS_CTL0_DCORSEL_4; // Set DCO to 24MHz
-    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) |
-               CS_CTL1_SELM__DCOCLK;
+    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) | CS_CTL1_SELM__DCOCLK;
     // Select MCLK as DCO source
     CS->KEY = 0;
 
     // Set Flash Bank read buffering
-    FLCTL->BANK0_RDCTL =
-        FLCTL->BANK0_RDCTL | (FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
-    FLCTL->BANK1_RDCTL =
-        FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
+    FLCTL->BANK0_RDCTL = FLCTL->BANK0_RDCTL | (FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
+    FLCTL->BANK1_RDCTL = FLCTL->BANK1_RDCTL & ~(FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
 
 #elif (__SYSTEM_CLOCK == 48000000) // 48 MHz
     // Switches LDO VCORE0 to LDO VCORE1; mandatory for 48 MHz setting
@@ -379,23 +364,20 @@ void SystemInit(void) {
 
     // 1 flash wait states (BANK0 VCORE1 max is 16 MHz, BANK1 VCORE1 max is 32
     // MHz)
-    FLCTL->BANK0_RDCTL = (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_WAIT_MASK) |
-                         FLCTL_BANK0_RDCTL_WAIT_1;
-    FLCTL->BANK1_RDCTL = (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_WAIT_MASK) |
-                         FLCTL_BANK1_RDCTL_WAIT_1;
+    FLCTL->BANK0_RDCTL =
+        (FLCTL->BANK0_RDCTL & ~FLCTL_BANK0_RDCTL_WAIT_MASK) | FLCTL_BANK0_RDCTL_WAIT_1;
+    FLCTL->BANK1_RDCTL =
+        (FLCTL->BANK1_RDCTL & ~FLCTL_BANK1_RDCTL_WAIT_MASK) | FLCTL_BANK1_RDCTL_WAIT_1;
 
     // DCO = 48 MHz; MCLK = source
     CS->KEY = CS_KEY_VAL;         // Unlock CS module for register access
     CS->CTL0 = CS_CTL0_DCORSEL_5; // Set DCO to 48MHz
-    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) |
-               CS_CTL1_SELM__DCOCLK;
+    CS->CTL1 = (CS->CTL1 & ~(CS_CTL1_SELM_MASK | CS_CTL1_DIVM_MASK)) | CS_CTL1_SELM__DCOCLK;
     // Select MCLK as DCO source
     CS->KEY = 0;
 
     // Set Flash Bank read buffering
-    FLCTL->BANK0_RDCTL =
-        FLCTL->BANK0_RDCTL | (FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
-    FLCTL->BANK1_RDCTL =
-        FLCTL->BANK1_RDCTL | (FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
+    FLCTL->BANK0_RDCTL = FLCTL->BANK0_RDCTL | (FLCTL_BANK0_RDCTL_BUFD | FLCTL_BANK0_RDCTL_BUFI);
+    FLCTL->BANK1_RDCTL = FLCTL->BANK1_RDCTL | (FLCTL_BANK1_RDCTL_BUFD | FLCTL_BANK1_RDCTL_BUFI);
 #endif
 }
