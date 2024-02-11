@@ -58,10 +58,7 @@ typedef enum { MOTOR_DIR_FORWARD, MOTOR_DIR_REVERSE, MOTOR_DIR_STOP } MotorDirec
  *      Values: MOTOR_INIT_LEFT    Indicates the configuration for the left motor
  *              MOTOR_INIT_RIGHT   Indicates the configuration for the right motor
  */
-typedef enum {
-    MOTOR_INIT_LEFT,
-    MOTOR_INIT_RIGHT
-} MotorInitTemplate;
+typedef enum { MOTOR_INIT_LEFT, MOTOR_INIT_RIGHT } MotorInitTemplate;
 
 /*T************************************************************************************************
  * NAME: MotorState
