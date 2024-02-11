@@ -8,8 +8,7 @@
  * PUBLIC FUNCTIONS:
  *      void        US_HAL_init()
  *      void        US_HAL_triggerMeasurement()
- *      bool        US_HAL_isMeasurementReady()
- *      uint16_t    US_HAL_getMeasurement()
+ *      void        US_HAL_registerMeasurementCallback(USCallback callback);
  *
  * NOTES:
  *
@@ -19,8 +18,9 @@
  *
  * CHANGES:
  * DATE         AUTHOR          DETAIL
+ * 10 Feb 2024  Andrea Piccin   Introduced callback mechanism
  */
-#include <stdbool.h>
+#include <stdio.h>
 
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/ultrasonic_hal.h"
@@ -33,9 +33,9 @@
 #define US_TICKS_TO_CM_DIVIDER 21.866  /* Fixed value to convert the number of ticks in cm  */
 #define US_OFFSET_FIX 12               /* Fixed value that fixes a sensor offset error      */
 
-volatile bool isMeasurementReady; /* If the last triggered measurement is terminated       */
-volatile uint16_t startTick;      /* Value of the counter at the rising edge on echo pin   */
-volatile uint16_t endTick;        /* Value of the counter at the falling edge on echo pin  */
+USCallback usCallback;       /* Function to call when a new measurement is ready      */
+volatile uint16_t startTick; /* Value of the counter at the rising edge on echo pin   */
+volatile uint16_t endTick;   /* Value of the counter at the falling edge on echo pin  */
 
 /*F************************************************************************************************
  * NAME: void US_HAL_init()
@@ -45,6 +45,7 @@ volatile uint16_t endTick;        /* Value of the counter at the falling edge on
  *      [1] I/O pins configuration
  *      [2] Interrupt setup for catching rising and falling edge on echo pin
  *      [3] Timer configuration (continuous mode)
+ *      [4] Global var initialisation
  *
  * INPUTS:
  *      PARAMETERS:
@@ -56,11 +57,12 @@ volatile uint16_t endTick;        /* Value of the counter at the falling edge on
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool    isMeasurementReady      Set to false
+ *          USCallback    usCallback      Set to NULL
  *
  *  NOTE:
  */
 void US_HAL_init() {
+    Interrupt_disableMaster();
     // [1] I/O pins configuration
     GPIO_setAsOutputPin(US_PORT, US_TRIGGER_PIN);
     GPIO_setOutputLowOnPin(US_PORT, US_TRIGGER_PIN);
@@ -70,7 +72,6 @@ void US_HAL_init() {
     GPIO_clearInterruptFlag(US_PORT, US_ECHO_PIN);
     GPIO_enableInterrupt(US_PORT, US_ECHO_PIN);
     Interrupt_enableInterrupt(INT_PORT1);
-    Interrupt_enableMaster();
 
     // [3] Timer configuration
     const Timer_A_ContinuousModeConfig contMode = {
@@ -80,6 +81,11 @@ void US_HAL_init() {
         TIMER_A_DO_CLEAR                // Restart from zero after max count
     };
     Timer_A_configureContinuousMode(TIMER_A2_BASE, &contMode);
+
+    // [4] global var initialisation
+    usCallback = NULL;
+
+    Interrupt_enableMaster();
 }
 
 /*F************************************************************************************************
@@ -99,7 +105,7 @@ void US_HAL_init() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool    isMeasurementReady      Set to false
+ *          None
  *
  *  NOTE:
  */
@@ -114,20 +120,17 @@ void US_HAL_triggerMeasurement() {
     while (Timer_A_getCounterValue(TIMER_A2_BASE) < 4)
         ;
     GPIO_setOutputLowOnPin(US_PORT, US_TRIGGER_PIN);
-
-    // reset the measurement ready flag
-    isMeasurementReady = false;
 }
 
 /*F************************************************************************************************
- * NAME: bool US_HAL_isMeasurementReady()
+ * NAME: void US_HAL_registerMeasurementCallback(USCallback callback)
  *
  * DESCRIPTION:
- *      Exposes the value of the isMeasurementReady global variable.
+ *      Set the passed USCallback as the function to call when a new measurement is ready
  *
  * INPUTS:
  *      PARAMETERS:
- *          None
+ *          USCallback  callback        Function to register as callback
  *      GLOBALS:
  *          None
  *
@@ -135,27 +138,24 @@ void US_HAL_triggerMeasurement() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
- *      RETURN:
- *          Type:   bool
- *          Value:  true if there is a valid measurement, false otherwise
+ *          USCallback  usCallback      Set to the given function
  *
  *  NOTE:
  */
-bool US_HAL_isMeasurementReady() { return isMeasurementReady; }
+void US_HAL_registerMeasurementCallback(USCallback callback) { usCallback = callback; }
 
 /*F************************************************************************************************
- * NAME: uint16_t US_HAL_getMeasurement()
+ * NAME: void US_HAL_convertAndForward()
  *
  * DESCRIPTION:
  *      This function converts the duration of the last echo signal (in number of ticks of the
- *      375kHz timer) to the corresponding distance in centimeters and returns the result.
+ *      375kHz timer) to the corresponding distance in centimeters and invokes the callback
+ *      function.
  *
  * INPUTS:
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool        isMeasurementReady     If the last triggered measurement is terminated
  *          uint16_t    startTick              Value of the counter at the rising edge on echo pin
  *          uint16_t    endTick                Value of the counter at the falling edge on echo pin
  *
@@ -163,11 +163,7 @@ bool US_HAL_isMeasurementReady() { return isMeasurementReady; }
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool        isMeasurementReady     Set to false
- *      RETURN:
- *          Type:   uint16_t        unsigned 16-bit integer
- *          Value:  the distance from the ahead object in cm, US_RESULT_INVALID if the
- *                  measurement wasn't ready and US_RESULT_NO_OBJ if nothing is detected.
+ *          None
  *
  *  NOTE:
  *      [1] The TICKS_TO_CM_DIVIDER conversion divider comes from the following calculation:
@@ -185,20 +181,24 @@ bool US_HAL_isMeasurementReady() { return isMeasurementReady; }
  *      [3] Following the sensor's datasheet if after 36ms from the echo rising edge there isn't a
  *          falling edge the result has to be interpreted as nothing is in front of the sensor.
  */
-uint16_t US_HAL_getMeasurement() {
-    // if there isn't a result return the invalid result values
-    if (!isMeasurementReady)
-        return US_RESULT_INVALID;
-
+void US_HAL_convertAndForward() {
+    GPIO_disableInterrupt(US_PORT, US_ECHO_PIN);
     /* calculate the delta between the end and start tick and the corresponding time in µs,
      * if the time exceed 36ms return the no object detected value */
     uint16_t delta = endTick - startTick;
     uint16_t usec = delta / US_TICKS_TO_USEC_DIVIDER;
+    uint16_t distance;
     if (usec > 36000)
-        return US_RESULT_NO_OBJECT;
+        distance = US_RESULT_NO_OBJECT;
+    else{
+        // convert the delta in cm and subtract the sensor's error
+        distance = (delta / US_TICKS_TO_CM_DIVIDER) - US_OFFSET_FIX;
+    }
 
-    // convert the delta in cm, subtract the sensor's error and return
-    return (delta / US_TICKS_TO_CM_DIVIDER) - US_OFFSET_FIX;
+    // invoke the callback function
+    if (usCallback != NULL)
+        usCallback(distance);
+    GPIO_enableInterrupt(US_PORT, US_ECHO_PIN);
 }
 
 /*ISR**********************************************************************************************
@@ -219,11 +219,8 @@ uint16_t US_HAL_getMeasurement() {
  *
  *  OUTPUTS:
  *      GLOBALS:
- *          bool        isMeasurementReady     Set to true in the falling edge procedure
- *          uint16_t    startTick              Set to the TIMER_A2 counter value at the time of
- *                                             the rising edge
- *          uint16_t    endTick                Set to the TIMER_A2 counter value at the time of
- *                                             the falling edge
+ *          uint16_t    startTick   The TIMER_A2 counter value at the time of the rising edge
+ *          uint16_t    endTick     The TIMER_A2 counter value at the time of the falling edge
  *
  *  NOTE:
  */
@@ -240,8 +237,8 @@ void PORT1_IRQHandler() {
         // falling edge
         else {
             endTick = Timer_A_getCounterValue(TIMER_A2_BASE);
-            isMeasurementReady = true;
             Timer_A_stopTimer(TIMER_A2_BASE);
+            US_HAL_convertAndForward();
         }
     }
 }

@@ -8,8 +8,7 @@
  * PUBLIC FUNCTIONS:
  *      void        BT_HAL_init()
  *      void        BT_HAL_sendMessage(const char* data)
- *      bool        BT_HAL_isMessageAvailable()
- *      void        BT_HAL_readMessage(char* buffer, size_t length)
+ *      void        BT_HAL_registerMessageCallback(BTCallback callback)
  *
  * NOTES:
  *
@@ -20,6 +19,7 @@
  * CHANGES:
  * DATE         AUTHOR          DETAIL
  * 04 Feb 2024  Andrea Piccin   Refactoring
+ * 09 Feb 2024  Andrea Piccin   Introduced callback mechanism
  */
 
 #ifndef BLUETOOTH_HAL_H
@@ -29,6 +29,18 @@
 #include <stdint.h>
 
 #include "driverlib/driverlib.h"
+
+/*T************************************************************************************************
+ * NAME: BTCallback
+ *
+ * DESCRIPTION:
+ *      It's a pointer to a function that manages the Bluetooth message after its reception.
+ *
+ * SPECIFICATIONS:
+ *      Type:   void*
+ *      Args:   const char*     message     text of the bluetooth incoming message
+ */
+typedef void (*BTCallback)(const char *message);
 
 /*F************************************************************************************************
  * NAME: void BT_HAL_init()
@@ -62,7 +74,7 @@ void BT_HAL_init();
  *      PARAMETERS:
  *          const char* data            Pointer to the string (ends with '\0')
  *      GLOBALS:
- *          uint32_t    BT_EUSCI_BASE   EUSCI module
+ *          None
  *
  *  OUTPUTS:
  *      PARAMETERS:
@@ -75,14 +87,14 @@ void BT_HAL_init();
 void BT_HAL_sendMessage(const char *data);
 
 /*F************************************************************************************************
- * NAME: bool BT_HAL_isMessageAvailable();
+ * NAME:  void BT_HAL_registerMessageCallback(BTCallback callback)
  *
  * DESCRIPTION:
- *      Check if there is an unread message.
+ *      Set the passed BTCallback as the function to call when a new message is ready
  *
  * INPUTS:
  *      PARAMETERS:
- *          None
+ *          BTCallback      callback        Function to register as callback
  *      GLOBALS:
             None
  *
@@ -91,35 +103,9 @@ void BT_HAL_sendMessage(const char *data);
  *          None
  *      GLOBALS:
  *          None
- *      RETURN:
- *          Type:   bool
- *          Value:  true if an unread message exists, false otherwise
  *
  *  NOTE:
  */
-bool BT_HAL_isMessageAvailable();
-
-/*F************************************************************************************************
- * NAME: void BT_HAL_readMessage(char* buffer, size_t length);
- *
- * DESCRIPTION:
- *      Read the last received and unread message.s
- *
- * INPUTS:
- *      PARAMETERS:
- *          char*       buffer          Pointer to the location to write
- *          size_t      length          Length of the buffer
- *      GLOBALS:
- *          int         BT_BUFFER_SIZE  Max size of the message buffer
- *
- *  OUTPUTS:
- *      PARAMETERS:
- *          char*       buffer          Writes the string
- *      GLOBALS:
- *          None
- *
- *  NOTE:
- */
-void BT_HAL_readMessage(char *buffer, size_t length);
+void BT_HAL_registerMessageCallback(BTCallback callback);
 
 #endif // BLUETOOTH_HAL_H
