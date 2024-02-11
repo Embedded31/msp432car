@@ -11,6 +11,7 @@
  *      void    MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed)
  *      void    MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction)
  *      void    MOTOR_HAL_stop(Motor *motor)
+ *      void    MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback)
  *
  * NOTES:
  *      In our implementation there are two motors attached to each of the L298N channels, so we
@@ -23,7 +24,10 @@
  * CHANGES:
  * DATE         AUTHOR          DETAIL
  * 05 Feb 2024  Andrea Piccin   Refactoring
+ * 11 Feb 2024  Andrea Piccin   Introduced callback mechanism for state change
  */
+#include <stdio.h>
+
 #include "../../inc/motor_hal.h"
 
 #define MOTOR_TIMER_PERIOD 5000        /* Max value of the counter           */
@@ -137,6 +141,7 @@ void MOTOR_HAL_motorInit(Motor *motor, MotorInitTemplate initTemplate) {
     }
     motor->state.speed = 0;
     motor->state.direction = MOTOR_DIR_FORWARD;
+    motor->stateCallback = NULL;
 
     // [4] Set up the Capture Compare Register (CCR) for the PWM signal generation
     const Timer_A_CompareModeConfig config = {motor->ccr, TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE,
@@ -172,6 +177,10 @@ void MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed) {
 
     // Update motor info
     motor->state.speed = speed;
+
+    // Notify the state change
+    if(motor->stateCallback != NULL)
+        motor->stateCallback(&motor->state);
 }
 
 /*F************************************************************************************************
@@ -211,6 +220,10 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
     motor->state.direction = direction;
     if (direction == MOTOR_DIR_STOP)
         motor->state.speed = 0;
+
+    // Notify the state change
+    if(motor->stateCallback != NULL)
+        motor->stateCallback(&motor->state);
 }
 
 /*F************************************************************************************************
@@ -239,4 +252,34 @@ void MOTOR_HAL_stop(Motor *motor) {
     GPIO_setOutputLowOnPin(MOTOR_INPUT_PORT, motor->in1_pin | motor->in2_pin);
     motor->state.direction = MOTOR_DIR_STOP;
     motor->state.speed = 0;
+
+    // Notify the state change
+    if(motor->stateCallback != NULL)
+        motor->stateCallback(&motor->state);
+}
+
+/*F************************************************************************************************
+ * NAME: void MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the given MotorCallback as the function to call when a change in the specified
+ *      motor state occurs.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor*              motor                   Specifies the target motor
+ *          MotorCallback       callback                The function to register as callback
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          MotorCallback       motor->stateCallback    Set to the given callback
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback){
+    motor->stateCallback = callback;
 }

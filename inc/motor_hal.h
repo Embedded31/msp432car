@@ -11,6 +11,7 @@
  *      void    MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed)
  *      void    MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction)
  *      void    MOTOR_HAL_stop(Motor *motor)
+ *      void    MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback)
  *
  * NOTES:
  *      In our implementation there are two motors attached to each of the L298N channels, so we
@@ -24,6 +25,7 @@
  * DATE         AUTHOR          DETAIL
  * 04 Feb 2024  Andrea Piccin   Refactoring
  * 04 Feb 2024  Andrea Piccin   Definitions moved to the source file, hidden to the user
+ * 11 Feb 2024  Andrea Piccin   Introduced callback mechanism for state change notification
  */
 #include <stdint.h>
 
@@ -77,23 +79,38 @@ typedef struct {
 } MotorState;
 
 /*T************************************************************************************************
+ * NAME: MotorCallback
+ *
+ * DESCRIPTION:
+ *      It's a pointer to a function that it's invoked every time there is a change in the motor
+ *      state.
+ *
+ * SPECIFICATIONS:
+ *      Type:   void*
+ *      Args:   MotorState  state       Current state of the motor
+ */
+typedef void (*MotorCallback)(MotorState* state);
+
+/*T************************************************************************************************
  * NAME: Motor
  *
  * DESCRIPTION:
- *      Represent a channel of the L298N motor driver
+ *      Represent a channel of the L298N motor driver, exposes an implementation-agnostic type for
+ *      the management of a motor.
  *
- * SPECIFICATIONS:
- *      Type:   struct
- *      Vars:   uint8_t         in1_pin     Pin for clockwise (CW) rotation
- *              uint8_t         in2_pin     Pin for counterclockwise (CCW) rotation
- *              uint8_t         ccr         Capture Compare Register with the target value for PWM
- *              MotorState      state       Current state of the motor
+ *  Type:   struct
+ *  Vars:   uint8_t         in1_pin         Pin for clockwise (CW) rotation
+ *          uint8_t         in2_pin         Pin for counterclockwise (CCW) rotation
+ *          uint8_t         ccr             Capture Compare Register with the target value for PWM
+ *          MotorState      state           Current state of the motor
+ *          MotorCallback   stateCallback   Function to call on state change
  */
 typedef struct {
     uint8_t in1_pin;
     uint8_t in2_pin;
     uint8_t ccr;
     MotorState state;
+    MotorCallback stateCallback;
 } Motor;
 
 /*F************************************************************************************************
@@ -102,7 +119,7 @@ typedef struct {
  * DESCRIPTION:
  *      Initialises the hardware required for the motors
  *
- * INPUTS:
+ * INPUTS:3
  *      PARAMETERS:
  *          None
  *      GLOBALS:
@@ -210,5 +227,29 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction);
  *  NOTE:
  */
 void MOTOR_HAL_stop(Motor *motor);
+
+/*F************************************************************************************************
+ * NAME: void MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the given MotorCallback as the function to call when a change in the specified
+ *      motor state occurs.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor*             motor           Specifies the target motor
+ *          MotorCallback      callback        The function to register as callback
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback);
 
 #endif // MOTOR_HAL_H
