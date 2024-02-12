@@ -11,7 +11,8 @@
  *      void    MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed)
  *      void    MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction)
  *      void    MOTOR_HAL_stop(Motor *motor)
- *      void    MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback)
+ *      void    MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback)
+ *      void    MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback)
  *
  * NOTES:
  *      In our implementation there are two motors attached to each of the L298N channels, so we
@@ -79,39 +80,61 @@ typedef struct {
 } MotorState;
 
 /*T************************************************************************************************
- * NAME: MotorCallback
+ * NAME: Motor
+ *
+ * DESCRIPTION:
+ *      Represent a channel of the L298N motor driver, a type for the management of a motor.
+ */
+typedef struct MotorStruct Motor;
+
+/*T************************************************************************************************
+ * NAME: MotorSpeedCallback
  *
  * DESCRIPTION:
  *      It's a pointer to a function that it's invoked every time there is a change in the motor
- *      state.
+ *      speed.
  *
  * SPECIFICATIONS:
  *      Type:   void*
  *      Args:   MotorState  state       Current state of the motor
  */
-typedef void (*MotorCallback)(MotorState* state);
+typedef void (*MotorSpeedCallback)(Motor *motor, uint8_t speed);
 
 /*T************************************************************************************************
- * NAME: Motor
+ * NAME: MotorDirCallback
  *
  * DESCRIPTION:
- *      Represent a channel of the L298N motor driver, exposes an implementation-agnostic type for
- *      the management of a motor.
+ *      It's a pointer to a function that it's invoked every time there is a change in the motor
+ *      speed.
+ *
+ * SPECIFICATIONS:
+ *      Type:   void*
+ *      Args:   MotorState  state       Current state of the motor
+ */
+typedef void (*MotorDirCallback)(Motor *motor, MotorDirection direction);
+
+/*S************************************************************************************************
+ * NAME: MotorStruct
+ *
+ * DESCRIPTION:
+ *      Represent a channel of the L298N motor driver, exposes a type for the management of a motor
  *
  *  Type:   struct
- *  Vars:   uint8_t         in1_pin         Pin for clockwise (CW) rotation
- *          uint8_t         in2_pin         Pin for counterclockwise (CCW) rotation
- *          uint8_t         ccr             Capture Compare Register with the target value for PWM
- *          MotorState      state           Current state of the motor
- *          MotorCallback   stateCallback   Function to call on state change
+ *  Vars:   uint8_t             in1_pin         Pin for clockwise (CW) rotation
+ *          uint8_t             in2_pin         Pin for counterclockwise (CCW) rotation
+ *          uint8_t             ccr             Capture Compare Register with the target value for PWM
+ *          MotorState          state           Current state of the motor
+ *          MotorSpeedCallback  speedCallback   Function to call on speed change
+ *          MotorDirCallback    dirCallback     Function to call on direction change
  */
-typedef struct {
+struct MotorStruct {
     uint8_t in1_pin;
     uint8_t in2_pin;
     uint8_t ccr;
     MotorState state;
-    MotorCallback stateCallback;
-} Motor;
+    MotorSpeedCallback speedCallback;
+    MotorDirCallback dirCallback;
+};
 
 /*F************************************************************************************************
  * NAME: void MOTOR_HAL_init()
@@ -229,16 +252,16 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction);
 void MOTOR_HAL_stop(Motor *motor);
 
 /*F************************************************************************************************
- * NAME: void MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback)
+ * NAME: void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback)
  *
  * DESCRIPTION:
- *      Registers the given MotorCallback as the function to call when a change in the specified
- *      motor state occurs.
+ *      Registers the given MotorSpeedCallback as the function to call when a change in the
+ *      specified motor speed occurs.
  *
  * INPUTS:
  *      PARAMETERS:
- *          Motor*             motor           Specifies the target motor
- *          MotorCallback      callback        The function to register as callback
+ *          Motor*              motor           Specifies the target motor
+ *          MotorSpeedCallback  callback        The function to register as callback
  *      GLOBALS:
  *          None
  *
@@ -250,6 +273,30 @@ void MOTOR_HAL_stop(Motor *motor);
  *
  *  NOTE:
  */
-void MOTOR_HAL_registerStateChangeCallback(Motor* motor, MotorCallback callback);
+void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback);
+
+/*F************************************************************************************************
+ * NAME: void MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the given MotorDirCallback as the function to call when a change in the
+ *      specified motor direction occurs.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor*              motor           Specifies the target motor
+ *          MotorDirCallback    callback        The function to register as callback
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback);
 
 #endif // MOTOR_HAL_H
