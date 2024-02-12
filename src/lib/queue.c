@@ -1,50 +1,42 @@
 #include <stdint.h>
-#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "../../inc/queue.h"
 
-struct QueueStruct {
-    void *data[QUEUE_SIZE];
-    int8_t front;
-    int8_t rear;
-    uint8_t itemCount;
-};
-
-Queue *queue_create() {
-    static struct QueueStruct queue;
-    queue.front = 0;
-    queue.rear = -1;
-    queue.itemCount = 0;
-    return &queue;
+void queue_init(StringQueue *queue) {
+    queue->front = 0;
+    queue->rear = -1;
+    queue->itemCount = 0;
 }
 
-bool queue_isEmpty(Queue *queue) { return queue->itemCount == 0; }
+bool queue_isEmpty(const StringQueue *queue) { return queue->itemCount == 0; }
 
-bool queue_isFull(Queue *queue) { return queue->itemCount == QUEUE_SIZE; }
+bool queue_isFull(const StringQueue *queue) { return queue->itemCount == QUEUE_SIZE; }
 
-void queue_enqueue(Queue *queue, void *data) {
-    if (!queue_isFull(queue)) {
+void queue_enqueue(StringQueue *queue, const char *string) {
+    if (!queue_isFull(queue) && strlen(string)<QUEUE_ELEMENT_SIZE) {
         queue->rear = (queue->rear + 1) % QUEUE_SIZE;
-        queue->data[queue->rear] = data;
+        strcpy(queue->data[queue->rear], string);
         queue->itemCount++;
     }
 }
 
-void *queue_dequeue(Queue *queue) {
+char* queue_dequeue(StringQueue *queue) {
     if (queue_isEmpty(queue))
         return NULL;
 
-    void *data = queue->data[queue->front];
+    char* string = queue->data[queue->front];
     queue->front = (queue->front + 1) % QUEUE_SIZE;
     queue->itemCount--;
     if (queue->itemCount == 0) {
         queue->front = 0;
         queue->rear = -1;
     }
-    return data;
+    return string;
 }
 
-void queue_destroy(Queue *queue) {
+void queue_destroy(StringQueue *queue) {
     while (!queue_isEmpty(queue))
         queue_dequeue(queue);
 }
