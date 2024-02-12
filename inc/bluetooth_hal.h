@@ -7,7 +7,7 @@
  *
  * PUBLIC FUNCTIONS:
  *      void        BT_HAL_init()
- *      void        BT_HAL_sendMessage(const char* data)
+ *      void        BT_HAL_sendMessage(const char* format, ...)
  *      void        BT_HAL_registerMessageCallback(BTCallback callback)
  *
  * NOTES:
@@ -72,7 +72,8 @@ void BT_HAL_init();
  *
  * INPUTS:
  *      PARAMETERS:
- *          const char* data            Pointer to the string (ends with '\0')
+ *          const char* format              Format of the string in printf style
+ *          ...         args                Like in printf
  *      GLOBALS:
  *          None
  *
@@ -84,7 +85,7 @@ void BT_HAL_init();
  *
  *  NOTE:
  */
-void BT_HAL_sendMessage(const char *data);
+void BT_HAL_sendMessage(const char *format, ...);
 
 /*F************************************************************************************************
  * NAME:  void BT_HAL_registerMessageCallback(BTCallback callback)
