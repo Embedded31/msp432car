@@ -11,6 +11,8 @@
  *      void    MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed)
  *      void    MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction)
  *      void    MOTOR_HAL_stop(Motor *motor)
+ *      void    MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback)
+ *      void    MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback)
  *
  * NOTES:
  *      In our implementation there are two motors attached to each of the L298N channels, so we
@@ -23,7 +25,10 @@
  * CHANGES:
  * DATE         AUTHOR          DETAIL
  * 05 Feb 2024  Andrea Piccin   Refactoring
+ * 11 Feb 2024  Andrea Piccin   Introduced callback mechanism for state change
  */
+#include <stdio.h>
+
 #include "../../inc/motor_hal.h"
 
 #define MOTOR_TIMER_PERIOD 5000        /* Max value of the counter           */
@@ -137,6 +142,8 @@ void MOTOR_HAL_motorInit(Motor *motor, MotorInitTemplate initTemplate) {
     }
     motor->state.speed = 0;
     motor->state.direction = MOTOR_DIR_FORWARD;
+    motor->speedCallback = NULL;
+    motor->dirCallback = NULL;
 
     // [4] Set up the Capture Compare Register (CCR) for the PWM signal generation
     const Timer_A_CompareModeConfig config = {motor->ccr, TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE,
@@ -166,12 +173,19 @@ void MOTOR_HAL_motorInit(Motor *motor, MotorInitTemplate initTemplate) {
  *  NOTE:
  */
 void MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed) {
+    if(motor->state.speed == speed)
+        return;
+
     // Update PWM signal
     uint16_t dutyCycle = speed * MOTOR_TIMER_PERIOD / 100;
     Timer_A_setCompareValue(TIMER_A0_BASE, motor->ccr, dutyCycle);
 
     // Update motor info
     motor->state.speed = speed;
+
+    // Notify the state change
+    if(motor->speedCallback != NULL)
+        motor->speedCallback(motor, motor->state.speed);
 }
 
 /*F************************************************************************************************
@@ -198,6 +212,9 @@ void MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed) {
  *  NOTE:
  */
 void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
+    if(motor->state.direction == direction)
+        return;
+
     // Stop the car by clearing the current configuration
     GPIO_setOutputLowOnPin(MOTOR_INPUT_PORT, motor->in1_pin | motor->in2_pin);
 
@@ -211,13 +228,17 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
     motor->state.direction = direction;
     if (direction == MOTOR_DIR_STOP)
         motor->state.speed = 0;
+
+    // Notify the state change
+    if(motor->dirCallback != NULL)
+        motor->dirCallback(motor, motor->state.direction);
 }
 
 /*F************************************************************************************************
  * NAME: void MOTOR_HAL_stop(Motor *motor);
  *
  * DESCRIPTION:
- *      Stops the motor by setting its IN1 and IN2 pin to zero then update the motor state.
+ *      Calls the MOTOR_HAL_setDirection() function in order to set the MOTOR_DIR_STOP state.
  *
  * INPUTS:
  *      PARAMETERS:
@@ -235,8 +256,57 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
  *  NOTE:
  */
 void MOTOR_HAL_stop(Motor *motor) {
-    // Stop the car by clearing the current configuration
-    GPIO_setOutputLowOnPin(MOTOR_INPUT_PORT, motor->in1_pin | motor->in2_pin);
-    motor->state.direction = MOTOR_DIR_STOP;
-    motor->state.speed = 0;
+    MOTOR_HAL_setDirection(motor, MOTOR_DIR_STOP);
+}
+
+/*F************************************************************************************************
+ * NAME: void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the given MotorSpeedCallback as the function to call when a change in the
+ *      specified motor speed occurs.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor*              motor                   Specifies the target motor
+ *          MotorSpeedCallback  callback                The function to register as callback
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          MotorSpeedCallback  motor->speedCallback    Set to the given callback
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback){
+    motor->speedCallback = callback;
+}
+
+/*F************************************************************************************************
+ * NAME: void MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the given MotorSpeedCallback as the function to call when a change in the
+ *      specified motor direction occurs.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor*              motor                   Specifies the target motor
+ *          MotorDirCallback    callback                The function to register as callback
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          MotorDirCallback     motor->dirCallback     Set to the given callback
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback){
+    motor->dirCallback = callback;
 }
