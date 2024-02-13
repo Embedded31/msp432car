@@ -286,7 +286,7 @@ void EUSCIA0_IRQHandler(void) {
             if (queue_isEmpty(&usbOutgoingMessagesQueue)) {
                 UART_disableInterrupt(EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT);
             } else {
-                usbCurrentTxPointer = queue_dequeue(&usbOutgoingMessagesQueue);
+                usbCurrentTxPointer = queue_front(&usbOutgoingMessagesQueue);
                 usbCurrentTxState = TX_MESSAGE;
             }
         }
@@ -298,6 +298,7 @@ void EUSCIA0_IRQHandler(void) {
                 UART_transmitData(EUSCI_A0_BASE, *usbCurrentTxPointer);
                 usbCurrentTxPointer++;
             } else {
+                queue_dequeue(&usbOutgoingMessagesQueue);
                 usbCurrentTxState = TX_CR;
             }
         }
