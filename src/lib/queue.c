@@ -36,6 +36,12 @@ char* queue_dequeue(StringQueue *queue) {
     return string;
 }
 
+char* queue_front(StringQueue *queue) {
+    if(queue_isEmpty(queue))
+        return NULL;
+    return queue->data[queue->front];
+}
+
 void queue_destroy(StringQueue *queue) {
     while (!queue_isEmpty(queue))
         queue_dequeue(queue);
