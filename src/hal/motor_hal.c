@@ -173,7 +173,7 @@ void MOTOR_HAL_motorInit(Motor *motor, MotorInitTemplate initTemplate) {
  *  NOTE:
  */
 void MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed) {
-    if (motor->state.speed == speed)
+    if(motor->state.speed == speed)
         return;
 
     // Update PWM signal
@@ -184,7 +184,7 @@ void MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed) {
     motor->state.speed = speed;
 
     // Notify the state change
-    if (motor->speedCallback != NULL)
+    if(motor->speedCallback != NULL)
         motor->speedCallback(motor, motor->state.speed);
 }
 
@@ -212,7 +212,7 @@ void MOTOR_HAL_setSpeed(Motor *motor, uint8_t speed) {
  *  NOTE:
  */
 void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
-    if (motor->state.direction == direction)
+    if(motor->state.direction == direction)
         return;
 
     // Stop the car by clearing the current configuration
@@ -230,7 +230,7 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
         motor->state.speed = 0;
 
     // Notify the state change
-    if (motor->dirCallback != NULL)
+    if(motor->dirCallback != NULL)
         motor->dirCallback(motor, motor->state.direction);
 }
 
@@ -255,7 +255,9 @@ void MOTOR_HAL_setDirection(Motor *motor, MotorDirection direction) {
  *
  *  NOTE:
  */
-void MOTOR_HAL_stop(Motor *motor) { MOTOR_HAL_setDirection(motor, MOTOR_DIR_STOP); }
+void MOTOR_HAL_stop(Motor *motor) {
+    MOTOR_HAL_setDirection(motor, MOTOR_DIR_STOP);
+}
 
 /*F************************************************************************************************
  * NAME: void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback)
@@ -279,7 +281,7 @@ void MOTOR_HAL_stop(Motor *motor) { MOTOR_HAL_setDirection(motor, MOTOR_DIR_STOP
  *
  *  NOTE:
  */
-void MOTOR_HAL_registerSpeedChangeCallback(Motor *motor, MotorSpeedCallback callback) {
+void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback){
     motor->speedCallback = callback;
 }
 
@@ -305,6 +307,6 @@ void MOTOR_HAL_registerSpeedChangeCallback(Motor *motor, MotorSpeedCallback call
  *
  *  NOTE:
  */
-void MOTOR_HAL_registerDirectionChangeCallback(Motor *motor, MotorDirCallback callback) {
+void MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback){
     motor->dirCallback = callback;
 }
