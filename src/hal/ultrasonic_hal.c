@@ -78,9 +78,9 @@ void US_HAL_init() {
         TIMER_A_CLOCKSOURCE_SMCLK,      // 24 MHz
         TIMER_A_CLOCKSOURCE_DIVIDER_64, // 24 MHz / 64 = 375 kHz
         TIMER_A_TAIE_INTERRUPT_DISABLE, // Disable overflow interrupt
-        TIMER_A_DO_CLEAR                // Restart from zero after max count
+        TIMER_A_DO_CLEAR,               // Restart from zero after max count
     };
-    Timer_A_configureContinuousMode(TIMER_A2_BASE, &contMode);
+    Timer_A_configureContinuousMode(TIMER_A1_BASE, &contMode);
 
     // [4] global var initialisation
     usCallback = NULL;
@@ -111,13 +111,13 @@ void US_HAL_init() {
  */
 void US_HAL_triggerMeasurement() {
     // stop and clear the timer
-    Timer_A_stopTimer(TIMER_A2_BASE);
-    Timer_A_clearTimer(TIMER_A2_BASE);
+    Timer_A_stopTimer(TIMER_A1_BASE);
+    Timer_A_clearTimer(TIMER_A1_BASE);
 
     // send a 10µs signal to the trigger pin
     GPIO_setOutputHighOnPin(US_PORT, US_TRIGGER_PIN);
-    Timer_A_startCounter(TIMER_A2_BASE, TIMER_A_CONTINUOUS_MODE);
-    while (Timer_A_getCounterValue(TIMER_A2_BASE) < 4)
+    Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_CONTINUOUS_MODE);
+    while (Timer_A_getCounterValue(TIMER_A1_BASE) < 4)
         ;
     GPIO_setOutputLowOnPin(US_PORT, US_TRIGGER_PIN);
 }
@@ -190,7 +190,7 @@ void US_HAL_convertAndForward() {
     uint16_t distance;
     if (usec > 36000)
         distance = US_RESULT_NO_OBJECT;
-    else{
+    else {
         // convert the delta in cm and subtract the sensor's error
         distance = (delta / US_TICKS_TO_CM_DIVIDER) - US_OFFSET_FIX;
     }
@@ -219,8 +219,8 @@ void US_HAL_convertAndForward() {
  *
  *  OUTPUTS:
  *      GLOBALS:
- *          uint16_t    startTick   The TIMER_A2 counter value at the time of the rising edge
- *          uint16_t    endTick     The TIMER_A2 counter value at the time of the falling edge
+ *          uint16_t    startTick   The TIMER_A1 counter value at the time of the rising edge
+ *          uint16_t    endTick     The TIMER_A1 counter value at the time of the falling edge
  *
  *  NOTE:
  */
@@ -232,12 +232,12 @@ void PORT1_IRQHandler() {
     if (status & US_ECHO_PIN) {
         // rising edge
         if (GPIO_getInputPinValue(US_PORT, US_ECHO_PIN)) {
-            startTick = Timer_A_getCounterValue(TIMER_A2_BASE);
+            startTick = Timer_A_getCounterValue(TIMER_A1_BASE);
         }
         // falling edge
         else {
-            endTick = Timer_A_getCounterValue(TIMER_A2_BASE);
-            Timer_A_stopTimer(TIMER_A2_BASE);
+            endTick = Timer_A_getCounterValue(TIMER_A1_BASE);
+            Timer_A_stopTimer(TIMER_A1_BASE);
             US_HAL_convertAndForward();
         }
     }
