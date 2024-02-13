@@ -1,52 +1,49 @@
 /*H************************************************************************************************
- * FILENAME:        bluetooth_hal.h
+ * FILENAME:        usb_serial_hal.h
  *
  * DESCRIPTION:
- *      Bluetooth Hardware Abstraction Layer (HAL), this header provides an abstraction over the
- *      UART communications with the Bluetooth Low Energy (BLE) module (HC-08 v2.2).
+ *      Hardware Abstraction Layer (HAL) for serial communication via the USB port.
  *
  * PUBLIC FUNCTIONS:
- *      void        BT_HAL_init()
- *      void        BT_HAL_sendMessage(const char* format, ...)
- *      void        BT_HAL_registerMessageCallback(BTCallback callback)
+ *      void        USB_SERIAL_HAL_init()
+ *      void        USB_SERIAL_HAL_sendMessage(const char* format, ...)
+ *      void        USB_SERIAL_HAL_registerMessageCallback(USBCallback callback)
  *
  * NOTES:
  *
  * AUTHOR: Andrea Piccin    <andrea.piccin@studenti.unitn.it>
  *
- * START DATE: 01 Feb 2024
+ * START DATE: 12 Feb 2024
  *
  * CHANGES:
  * DATE         AUTHOR          DETAIL
- * 04 Feb 2024  Andrea Piccin   Refactoring
- * 09 Feb 2024  Andrea Piccin   Introduced callback mechanism
  */
 
-#ifndef BLUETOOTH_HAL_H
-#define BLUETOOTH_HAL_H
+#ifndef USB_SERIAL_HAL_H
+#define USB_SERIAL_HAL_H
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "driverlib/driverlib.h"
+#include "../inc/driverlib/driverlib.h"
 
 /*T************************************************************************************************
- * NAME: BTCallback
+ * NAME: USBCallback
  *
  * DESCRIPTION:
- *      It's a pointer to a function that manages the Bluetooth message after its reception.
+ *      It's a pointer to a function that manages the serial message after its reception.
  *
  * SPECIFICATIONS:
  *      Type:   void*
  *      Args:   const char*     message     text of the bluetooth incoming message
  */
-typedef void (*BTCallback)(const char *message);
+typedef void (*USBCallback)(const char *message);
 
 /*F************************************************************************************************
- * NAME: void BT_HAL_init()
+ * NAME: void USB_SERIAL_HAL_init()
  *
  * DESCRIPTION:
- *      Initialises the hardware required for the bluetooth communications.
+ *      Initialises the hardware required for the serial communications.
  *
  * INPUTS:
  *      PARAMETERS:
@@ -62,13 +59,13 @@ typedef void (*BTCallback)(const char *message);
  *
  *  NOTE:
  */
-void BT_HAL_init();
+void USB_SERIAL_HAL_init();
 
 /*F************************************************************************************************
- * NAME: void BT_HAL_sendMessage(const char* data);
+ * NAME: void USB_SERIAL_HAL_sendMessage(const char* format, ...);
  *
  * DESCRIPTION:
- *      Send a string to the BLE module that will send it to every connected device.
+ *      Send a string via the USB serial interface
  *
  * INPUTS:
  *      PARAMETERS:
@@ -85,17 +82,17 @@ void BT_HAL_init();
  *
  *  NOTE:
  */
-void BT_HAL_sendMessage(const char *format, ...);
+void USB_SERIAL_HAL_sendMessage(const char *format, ...);
 
 /*F************************************************************************************************
- * NAME:  void BT_HAL_registerMessageCallback(BTCallback callback)
+ * NAME:  void USB_SERIAL_HAL_registerMessageCallback(USBCallback callback)
  *
  * DESCRIPTION:
- *      Set the passed BTCallback as the function to call when a new message is ready
+ *      Set the passed USBCallback as the function to call when a new message is ready
  *
  * INPUTS:
  *      PARAMETERS:
- *          BTCallback      callback        Function to register as callback
+ *          USBCallback      callback        Function to register as callback
  *      GLOBALS:
             None
  *
@@ -107,6 +104,6 @@ void BT_HAL_sendMessage(const char *format, ...);
  *
  *  NOTE:
  */
-void BT_HAL_registerMessageCallback(BTCallback callback);
+void USB_SERIAL_HAL_registerMessageCallback(USBCallback callback);
 
-#endif // BLUETOOTH_HAL_H
+#endif // USB_SERIAL_HAL_H

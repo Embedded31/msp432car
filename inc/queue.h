@@ -1,22 +1,31 @@
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifndef QUEUE_H
 #define QUEUE_H
 
 #define QUEUE_SIZE 10
+#define QUEUE_ELEMENT_SIZE 100
 
-typedef struct QueueStruct Queue;
+typedef struct {
+    char data[QUEUE_SIZE][QUEUE_ELEMENT_SIZE];
+    int8_t front;
+    int8_t rear;
+    uint8_t itemCount;
+} StringQueue;
 
-Queue *queue_create();
+void queue_init(StringQueue *queue);
 
-bool queue_isEmpty(Queue *queue);
+bool queue_isEmpty(const StringQueue *queue);
 
-bool queue_isFull(Queue *queue);
+bool queue_isFull(const StringQueue *queue);
 
-void queue_enqueue(Queue *queue, void *data);
+void queue_enqueue(StringQueue *queue, const char *data);
 
-void *queue_dequeue(Queue *queue);
+char *queue_dequeue(StringQueue *queue);
 
-void queue_clear(Queue *queue);
+char* queue_front(StringQueue *queue);
+
+void queue_clear(StringQueue *queue);
 
 #endif // QUEUE_H

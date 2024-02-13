@@ -7,7 +7,7 @@
  *
  * PUBLIC FUNCTIONS:
  *      void    BT_HAL_init()
- *      void    BT_HAL_sendMessage(const char* data)
+ *      void    BT_HAL_sendMessage(const char* format, ...)
  *      void    BT_HAL_registerMessageCallback(BTCallback callback)
  *
  * NOTES:
@@ -24,7 +24,10 @@
  * 04 Feb 2024  Andrea Piccin   Refactoring
  * 09 Feb 2024  Andrea Piccin   Introduced callback mechanism
  * 10 Feb 2024  Andrea Piccin   Fixed multiple message transmission adding a queue
+ * 12 Feb 2024  Andrea Piccin   introduced printf-like sendMessage function
  */
+#include <stdarg.h>
+#include <stdio.h>
 
 #include "../../inc/bluetooth_hal.h"
 #include "../../inc/queue.h"
@@ -51,10 +54,10 @@
  */
 typedef enum { TX_IDLE, TX_MESSAGE, TX_CR, TX_LF } TxState;
 
-BTCallback btCallback;                                 /* To call when a new message is ready */
+BTCallback btCallback;                               /* To call when a new message is ready */
 volatile char incomingMessageBuffer[BT_BUFFER_SIZE]; /* Contains the incoming message       */
 volatile uint16_t currentRxIndex;                    /* Index of the current char to read   */
-volatile Queue *outgoingMessagesQueue;               /* Queue of the messages to send       */
+volatile StringQueue outgoingMessagesQueue;          /* Queue of the messages to send       */
 volatile char *currentTxPointer;                     /* Pointer to the string to send       */
 volatile TxState currentTxState;                     /* State the transmission              */
 
@@ -79,7 +82,7 @@ volatile TxState currentTxState;                     /* State the transmission  
  *          None
  *      GLOBALS:
  *          uint16_t    currentRxIndex              Set to 0
- *          Queue       outgoingMessagesQueue       Initialised
+ *          StringQueue outgoingMessagesQueue       Initialised
  *          char*       currentTxPointer            Set to NULL
  *          TxState     currentTxState              Set to TX_IDLE
  *          BTCallback  btCallback                  Set to NULL
@@ -109,7 +112,7 @@ void BT_HAL_init() {
 
     /* [3] Initialise the global variables */
     currentRxIndex = 0;
-    outgoingMessagesQueue = queue_create();
+    queue_init(&outgoingMessagesQueue);
     currentTxPointer = NULL;
     currentTxState = TX_IDLE;
     btCallback = NULL;
@@ -127,31 +130,44 @@ void BT_HAL_init() {
  *      Sends a message to the BLE module via the UART communication, the bluetooth module will
  *      forward it and every connected device will receive it, the procedure goes through the
  *      following steps:
- *      [1] Adds the message to the outgoing messages queue
- *      [2] Enables the transmit interrupt that signals if the transmission buffer is ready
- *      [3] The ISR will send the message
+ *      [1] Creates the message using the sprintf
+ *      [2] Adds the message to the outgoing messages queue
+ *      [3] Enables the transmit interrupt that signals if the transmission buffer is ready
+ *      [4] The ISR will send the message
  *
  * INPUTS:
  *      PARAMETERS:
- *          const char* data                    Pointer to the string to send
+ *          const char* format              Format of the string in printf style
+ *          ...         args                Like in printf
  *      GLOBALS:
- *          Queue       outgoingMessagesQueue   Queue of the messages to send
+ *          StringQueue outgoingMessagesQueue   Queue of the messages to send
  *
  *  OUTPUTS:
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          Queue       outgoingMessageQueue    A new string is enqueued
+ *          StringQueue outgoingMessagesQueue    A new string is enqueued
  *
  *  NOTE:
  *      The queue has a fixed size of 10 elements, every exceeding message will be lost
  */
-void BT_HAL_sendMessage(const char *data) {
-    if (queue_isFull(outgoingMessagesQueue))
+void BT_HAL_sendMessage(const char *format, ...) {
+    if (queue_isFull(&outgoingMessagesQueue))
         return;
 
-    queue_enqueue(outgoingMessagesQueue, data);
+    // [1] Creates the message using the sprintf
+    char msg[QUEUE_ELEMENT_SIZE];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(msg, sizeof(msg), format, args);
+    va_end(args);
+
+    // [2] Adds the message to the outgoing messages queue
+    queue_enqueue(&outgoingMessagesQueue, msg);
+
+    // [3] Enables the transmit interrupt
     UART_enableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT);
+    // [4] The ISR will send the message
 }
 
 /*F************************************************************************************************
@@ -224,7 +240,7 @@ void BT_HAL_forwardAndReset() {
  *      GLOBALS:
  *          int             currentRxIndex          Index of the current char to read
  *          char*           currentTxPointer        Current string to send
- *          Queue           outgoingMessagesQueue   Queue of the messages to send
+ *          StringQueue     outgoingMessagesQueue   Queue of the messages to send
  *          TxState         currentTxState          State the transmission
  *
  *  OUTPUTS:
@@ -274,10 +290,10 @@ void EUSCIA2_IRQHandler(void) {
         /* if the state is TX_IDLE there is no transmission, if there is a message in the queue
          * load it, otherwise disable the interrupts */
         if (currentTxState == TX_IDLE) {
-            if (queue_isEmpty(outgoingMessagesQueue)) {
+            if (queue_isEmpty(&outgoingMessagesQueue)) {
                 UART_disableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT);
             } else {
-                currentTxPointer = queue_dequeue(outgoingMessagesQueue);
+                currentTxPointer = queue_front(&outgoingMessagesQueue);
                 currentTxState = TX_MESSAGE;
             }
         }
@@ -289,6 +305,7 @@ void EUSCIA2_IRQHandler(void) {
                 UART_transmitData(BT_EUSCI_BASE, *currentTxPointer);
                 currentTxPointer++;
             } else {
+                queue_dequeue(&outgoingMessagesQueue);
                 currentTxState = TX_CR;
             }
         }
