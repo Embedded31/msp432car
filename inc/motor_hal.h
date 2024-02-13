@@ -122,10 +122,10 @@ typedef void (*MotorDirCallback)(Motor *motor, MotorDirection direction);
  *  Type:   struct
  *  Vars:   uint8_t             in1_pin         Pin for clockwise (CW) rotation
  *          uint8_t             in2_pin         Pin for counterclockwise (CCW) rotation
- *          uint8_t             ccr             Capture Compare Register with the target value for PWM
- *          MotorState          state           Current state of the motor
- *          MotorSpeedCallback  speedCallback   Function to call on speed change
- *          MotorDirCallback    dirCallback     Function to call on direction change
+ *          uint8_t             ccr             Capture Compare Register with the target value for
+ * PWM MotorState          state           Current state of the motor MotorSpeedCallback
+ * speedCallback   Function to call on speed change MotorDirCallback    dirCallback     Function to
+ * call on direction change
  */
 struct MotorStruct {
     uint8_t in1_pin;
@@ -273,7 +273,7 @@ void MOTOR_HAL_stop(Motor *motor);
  *
  *  NOTE:
  */
-void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback callback);
+void MOTOR_HAL_registerSpeedChangeCallback(Motor *motor, MotorSpeedCallback callback);
 
 /*F************************************************************************************************
  * NAME: void MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback)
@@ -297,6 +297,6 @@ void MOTOR_HAL_registerSpeedChangeCallback(Motor* motor, MotorSpeedCallback call
  *
  *  NOTE:
  */
-void MOTOR_HAL_registerDirectionChangeCallback(Motor* motor, MotorDirCallback callback);
+void MOTOR_HAL_registerDirectionChangeCallback(Motor *motor, MotorDirCallback callback);
 
 #endif // MOTOR_HAL_H
