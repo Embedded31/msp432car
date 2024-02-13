@@ -293,7 +293,7 @@ void EUSCIA2_IRQHandler(void) {
             if (queue_isEmpty(&outgoingMessagesQueue)) {
                 UART_disableInterrupt(BT_EUSCI_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT);
             } else {
-                currentTxPointer = queue_dequeue(&outgoingMessagesQueue);
+                currentTxPointer = queue_front(&outgoingMessagesQueue);
                 currentTxState = TX_MESSAGE;
             }
         }
@@ -305,6 +305,7 @@ void EUSCIA2_IRQHandler(void) {
                 UART_transmitData(BT_EUSCI_BASE, *currentTxPointer);
                 currentTxPointer++;
             } else {
+                queue_dequeue(&outgoingMessagesQueue);
                 currentTxState = TX_CR;
             }
         }

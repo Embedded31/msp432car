@@ -24,6 +24,8 @@ void queue_enqueue(StringQueue *queue, const char *data);
 
 char *queue_dequeue(StringQueue *queue);
 
+char* queue_front(StringQueue *queue);
+
 void queue_clear(StringQueue *queue);
 
 #endif // QUEUE_H
