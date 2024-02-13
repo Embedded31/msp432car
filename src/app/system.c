@@ -17,10 +17,10 @@
  * DATE         AUTHOR          DETAIL
  */
 
-#include "../../inc/driverlib/driverlib.h"
 #include "../../inc/system.h"
+#include "../../inc/driverlib/driverlib.h"
 
-#define DCO_FREQUENCY CS_DCO_FREQUENCY_24       // 24MHz
+#define DCO_FREQUENCY CS_DCO_FREQUENCY_24 // 24MHz
 
 /*F************************************************************************************************
  * NAME: void system_init()
