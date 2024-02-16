@@ -19,8 +19,9 @@
  * START DATE: 08 Feb 2024
  *
  * CHANGES:
- * DATE         AUTHOR          DETAIL
- * 13 Feb 2024  Andrea Piccin   Refactoring
+ * DATE         AUTHOR              DETAIL
+ * 13 Feb 2024  Andrea Piccin       Refactoring
+ * 15 Feb 2024  Matteo Frizzera     Added callback mechanism to notify when servo has reached target direction
  */
 #include "../../inc/servo_hal.h"
 #include "../../inc/driverlib/driverlib.h"
@@ -34,6 +35,16 @@
 #define SERVO_MID_POS_TICKS 1460 /* Time of the high PWM signal for 0 deg   */
 #define SERVO_MAX_POS_TICKS 2350 /* Time of the high PWM signal for +90deg  */
 
+// TODO need to take some experimental measurements to know how long it takes for the servo to rotate
+// from the data sheet: 0.1 seconds / 60 degress when there is no load
+
+#define SERVO_LOAD_COEFF 0.25                        /* Rotates slower as there is a load on the motor (weight of US sensor)
+                                                        TODO some experimenal measurements need to be done                   */
+#define SERVO_TIME_FULL_ROT (0.3 / SERVO_LOAD_COEFF) /* Seconds to make full rotation, from -90 to 90                        */   
+
+// executes when servo has reached target direction, after a SERVO_HAL_setPosition(...)
+ServoCallback servoCallback;
+
 /*F************************************************************************************************
  * NAME: void SERVO_HAL_init(Servo* servo);
  *
@@ -45,6 +56,7 @@
  *      [3] Configure the  base timer
  *      [4] Set up the Capture Compare Register (CCR) for the PWM signal generation
  *      [5] Set initial position
+ *      [6] configure timer clock used to wait for servo motor to finish rotating
  *
  * INPUTS:
  *      PARAMETERS:
@@ -93,6 +105,14 @@ void SERVO_HAL_init(Servo *servo) {
 
     // [5] Set initial position
     SERVO_HAL_setPosition(servo, 0);
+
+    // [6] configure timer clock used to wait for servo motor to finish rotating
+
+    /* sets ACLK to LFXT (onboard Low Frequency oscillator, 32kHz freq.)
+       ACLK will have a frequency of 32kHz                            */
+    CS_initClockSignal(CS_ACLK, CS_LFXTCLK_SELECT, CS_CLOCK_DIVIDER_1);
+
+    servoCallback = NULL;
 
     Interrupt_enableMaster();
 }
@@ -150,6 +170,7 @@ uint16_t SERVO_HAL_positionToTicks(int8_t position) {
  *          None
  *
  *  NOTE:
+ *      Will generate a Capture Compare Interrupt on Timer A0 when servo has finished moving
  */
 void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
     if (position < SERVO_MIN_POSITION)
@@ -165,6 +186,76 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
     Timer_A_setCompareValue(TIMER_A2_BASE, servo->ccr, dutyCycleTicks);
     Timer_A_clearTimer(TIMER_A2_BASE);
 
+    // starts timer to notify when servo has reached position
+    // it calculates how much time to wait based on the change in position
+    uint16_t period = (abs(position - servo->state.position) / 180) * SERVO_TIME_FULL_ROT;
+    Timer_A_UpModeConfig upConfigServo = {
+        TIMER_A_CLOCKSOURCE_ACLK,            // ACLK = 32kHz
+        TIMER_A_CLOCKSOURCE_DIVIDER_32,      // ACLK/32 = 1kHz -> 0.001s period
+        period / 0.001,                      // rotation time (s) / 0.001s
+        TIMER_A_TAIE_INTERRUPT_DISABLE,      // Disable Timer interrupt
+        TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE,  // Enable CCR0 interrupt
+        TIMER_A_DO_CLEAR,                    // Clear value
+    };
+    Timer_A_configureUpMode(TIMER_A0_BASE, &upConfigServo);
+    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
+    // enables Capture Compare interrupt on Timer A0
+    Interrupt_enableInterrupt(INT_TA0_0);
+
     // Update servo info
     servo->state.position = position;
+}
+
+
+/*F************************************************************************************************
+ * NAME: void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the ServoCallback as the function to call when servo motor reaches destination
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          ServoCallback callback                  The function to register as callback         
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          ServoCallback servoCallback             Set to the given callback
+ *
+ *  NOTE:
+ */
+void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback){
+    servoCallback = callback;
+}
+
+/*ISR**********************************************************************************************
+ * NAME: void PORT2_IRQHandler()
+ *
+ * DESCRIPTION:
+ *      This function is called when a Capture Compare interrupt happens on Timer A0
+ *
+ * INPUTS:
+ *      GLOBALS:
+ *          ServoCallback   servoCallback       callback function to execute
+ *
+ *  OUTPUTS:
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void TA0_0_IRQHandler(void)
+{
+    // clears CC flag
+    Timer_A_clearCaptureCompareInterrupt(TIMER_A0_BASE,
+            TIMER_A_CAPTURECOMPARE_REGISTER_0);
+
+    // stops timer
+    Timer_A_stopTimer(TIMER_A0_BASE);
+
+    // executes callback function
+    servoCallback();
 }

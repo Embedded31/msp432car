@@ -15,13 +15,26 @@
  * START DATE: 08 Feb 2024
  *
  * CHANGES:
- * DATE         AUTHOR          DETAIL
- * 13 Feb 2024  Andrea Piccin   Refactoring
+ * DATE         AUTHOR              DETAIL
+ * 13 Feb 2024  Andrea Piccin       Refactoring
+ * 15 Feb 2024  Matteo Frizzera     Added functions to wait for servo to finish moving
  */
 #include <stdint.h>
 
 #ifndef SERVO_HAL_H
 #define SERVO_HAL_H
+
+/*T************************************************************************************************
+ * NAME: ServoCallback
+ *
+ * DESCRIPTION:
+ *      It's a pointer to a function that executes when servo has finished rotating to new position
+ *
+ * SPECIFICATIONS:
+ *      Type:   void*
+ *      Args:   None
+ */
+typedef void (*ServoCallback)();
 
 /*T************************************************************************************************
  * NAME: ServoState
@@ -98,5 +111,27 @@ void SERVO_HAL_init(Servo *servo);
  *  NOTE:
  */
 void SERVO_HAL_setPosition(Servo *servo, int8_t position);
+
+/*F************************************************************************************************
+ * NAME: void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the ServoCallback as the function to call when servo motor reaches destination
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          ServoCallback callback                  The function to register as callback         
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          ServoCallback servoCallback             Set to the given callback
+ *
+ *  NOTE:
+ */
+void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback);
 
 #endif // SERVO_HAL_H
