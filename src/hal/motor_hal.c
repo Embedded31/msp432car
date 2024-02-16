@@ -141,7 +141,7 @@ void MOTOR_HAL_motorInit(Motor *motor, MotorInitTemplate initTemplate) {
         motor->ccr = TIMER_A_CAPTURECOMPARE_REGISTER_2;
     }
     motor->state.speed = 0;
-    motor->state.direction = MOTOR_DIR_FORWARD;
+    motor->state.direction = MOTOR_DIR_STOP;
     motor->speedCallback = NULL;
     motor->dirCallback = NULL;
 
