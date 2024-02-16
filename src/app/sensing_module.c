@@ -27,7 +27,7 @@
  * START DATE: 12 Feb 2024
  *
  * CHANGES:
- *      none
+ *      15 Feb 2024  Matteo Frizzera     Added polling and global variable to wait for servo to reach target direction
  * 
  */
 
@@ -41,8 +41,9 @@
 
 Servo servo; /* servo motor on wich the ultrasonic sensor is mounted */
 
-bool Sensing_Module_US_measurementFinished; /* this flag is true if US sensor has finished measuring distance                       */
-uint16_t Sensing_Module_US_distance;        /* distance of object detected, US_RESULT_NO_OBJECT if no object was detected */
+volatile bool Sensing_Module_US_measurementFinished; /* flag is true if US sensor has finished measuring distance                       */
+volatile bool Sensing_Module_SERVO_finishedMoving;   /* flag to keep track of when servo motor has reached position set with SERVO_HAL_setPosition(servo, pos)*/
+volatile uint16_t Sensing_Module_US_distance;        /* distance of object detected, US_RESULT_NO_OBJECT if no object was detected */
 
 
 /*F************************************************************************************************
@@ -74,6 +75,33 @@ void Sensing_Module_US_callback(uint16_t distance){
 
 
 /*F************************************************************************************************
+ * NAME: void Sensing_Module_SERVO_callback()
+ *
+ * DESCRIPTION:
+ *      Callback function to execute when servo has reached target direction (after a direction change)
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          bool Sensing_Module_US_measurementFinished      set to true
+ *          uint16_t Sensing_Module_US_distance             set to distance measured 
+ * 
+ *
+ *  NOTE:
+ */
+void Sensing_Module_SERVO_callback(){
+    Sensing_Module_SERVO_finishedMoving = true;
+}
+
+
+/*F************************************************************************************************
  * NAME: void Sensing_Module_init()
  *
  * DESCRIPTION:
@@ -90,7 +118,9 @@ void Sensing_Module_US_callback(uint16_t distance){
  *          None
  *      GLOBALS:
  *          bool Sensing_Module_US_measurementFinished      set to false
+ *          bool Sensing_Module_SERVO_finishedMoving        set to false
  *          USCallback usCallback                           set to callback function
+ *          ServoCallback servoCallback                     set to callback function
  *
  *  NOTE:
  */
@@ -99,8 +129,10 @@ void Sensing_Module_init(){
     usCallback = &Sensing_Module_US_callback;
 
     SERVO_HAL_init(&servo);
+    servoCallback = &Sensing_Module_SERVO_callback;
 
     Sensing_Module_US_measurementFinished = false;
+    Sensing_Module_SERVO_finishedMoving = false;
 }
 
 
@@ -138,6 +170,11 @@ void Sensing_Module_init(){
 bool Sensing_Module_checkClearance(uint8_t deg){
     // [1] makes SERVO motor rotate to desired direction
     SERVO_HAL_setPosition(&servo, deg);
+
+    // waits for SERVO to reach target direction
+    while(!Sensing_Module_SERVO_finishedMoving);
+
+    Sensing_Module_SERVO_finishedMoving = false;
 
     /* TODO here it should wait for the servo motor to finish moving to the desired direction
         We could implement a callback in the Servo HAL to notify when moving is done or just wait 
