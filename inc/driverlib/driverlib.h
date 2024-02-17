@@ -56,7 +56,7 @@
 #include "rtc_c.h"
 // #include <ti/devices/msp432p4xx/driverlib/spi.h>
 // #include <ti/devices/msp432p4xx/driverlib/systick.h>
-// #include <ti/devices/msp432p4xx/driverlib/timer32.h>
+#include "timer32.h"
 #include "timer_a.h"
 #include "uart.h"
 #include "wdt_a.h"
