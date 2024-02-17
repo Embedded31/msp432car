@@ -6,8 +6,9 @@
  *      management of a SG90 Servo motor.
  *
  * PUBLIC FUNCTIONS:
- *      void    SERVO_HAL_init(Servo* servo);
- *      void    SERVO_HAL_setPosition(Servo* servo, int8_t position);
+ *      void    SERVO_HAL_init(Servo* servo)
+ *      void    SERVO_HAL_setPosition(Servo* servo, int8_t position)
+ *      void    SERVO_HAL_registerPositionReachedCallback(ServoCallback callback)
  *
  * NOTES:
  *      The PWM timings are calculated basing on the SG90 datasheet:
@@ -21,29 +22,28 @@
  * CHANGES:
  * DATE         AUTHOR              DETAIL
  * 13 Feb 2024  Andrea Piccin       Refactoring
- * 15 Feb 2024  Matteo Frizzera     Added callback mechanism to notify when servo has reached target direction
+ * 15 Feb 2024  Matteo Frizzera     Added callback mechanism to notify servo reached final position
+ * 15 Feb 2024  Andrea Piccin       Refactoring, functions using timer A0 now use TIMER32_0
  */
+#include <stdlib.h>
+
 #include "../../inc/servo_hal.h"
 #include "../../inc/driverlib/driverlib.h"
 
-#define SERVO_PORT GPIO_PORT_P5  /* Port for the PWM signals                */
-#define SERVO_PIN GPIO_PIN6      /* Pin for the PWM signals                 */
-#define SERVO_TIMER_PERIOD 20000 /* PWM period of 20ms                      */
-#define SERVO_MIN_POSITION -90   /* Minimum position in deg                 */
-#define SERVO_MAX_POSITION 90    /* Maximum position in deg                 */
-#define SERVO_MIN_POS_TICKS 660  /* Time of the high PWM signal for -90 deg */
-#define SERVO_MID_POS_TICKS 1460 /* Time of the high PWM signal for 0 deg   */
-#define SERVO_MAX_POS_TICKS 2350 /* Time of the high PWM signal for +90deg  */
+#define SERVO_PORT GPIO_PORT_P5    /* Port for the PWM signals                                */
+#define SERVO_PIN GPIO_PIN6        /* Pin for the PWM signals                                 */
+#define SERVO_TIMER_PERIOD 20000   /* PWM period of 20ms                                      */
+#define SERVO_MIN_POS_TICKS 680    /* Time of the high PWM signal for -90 deg                 */
+#define SERVO_MID_POS_TICKS 1400   /* Time of the high PWM signal for 0 deg                   */
+#define SERVO_MAX_POS_TICKS 2300   /* Time of the high PWM signal for +90deg                  */
+#define SERVO_LOAD_COEFFICIENT 2.2 /* Corrects the rotational delay due to attached weight    */
+#define SERVO_180DEG_TICKS 28125   /* Timer32 ticks for a 180 deg turn according to datasheet */
 
-// TODO need to take some experimental measurements to know how long it takes for the servo to rotate
-// from the data sheet: 0.1 seconds / 60 degress when there is no load
+/* In order to simplify the code the following definition introduces a new ticks count for
+ * a full rotation in which the correction coefficient is already applied */
+#define SERVO_ADJ_180DEG_TICKS (SERVO_180DEG_TICKS * SERVO_LOAD_COEFFICIENT)
 
-#define SERVO_LOAD_COEFF 0.25                        /* Rotates slower as there is a load on the motor (weight of US sensor)
-                                                        TODO some experimenal measurements need to be done                   */
-#define SERVO_TIME_FULL_ROT (0.3 / SERVO_LOAD_COEFF) /* Seconds to make full rotation, from -90 to 90                        */   
-
-// executes when servo has reached target direction, after a SERVO_HAL_setPosition(...)
-ServoCallback servoCallback;
+ServoCallback servoCallback;    /* function to execute when the servo reaches its final position */
 
 /*F************************************************************************************************
  * NAME: void SERVO_HAL_init(Servo* servo);
@@ -55,8 +55,9 @@ ServoCallback servoCallback;
  *      [2] Configure servo's pin
  *      [3] Configure the  base timer
  *      [4] Set up the Capture Compare Register (CCR) for the PWM signal generation
- *      [5] Set initial position
- *      [6] configure timer clock used to wait for servo motor to finish rotating
+ *      [5] Init the timer32 module used for waiting for the servo to be in place
+ *      [6] Wait for the servo to be at 0 deg position
+ *      [7] Enable timer interrupts
  *
  * INPUTS:
  *      PARAMETERS:
@@ -76,6 +77,7 @@ void SERVO_HAL_init(Servo *servo) {
     Interrupt_disableMaster();
     // [1] Initialize servo's values
     servo->ccr = TIMER_A_CAPTURECOMPARE_REGISTER_1;
+    servoCallback = NULL;
 
     // [2] Configure servo's pin
     GPIO_setAsPeripheralModuleFunctionOutputPin(SERVO_PORT, SERVO_PIN,
@@ -99,20 +101,24 @@ void SERVO_HAL_init(Servo *servo) {
         servo->ccr,
         TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE,
         TIMER_A_OUTPUTMODE_TOGGLE_SET,
-        0,
+        SERVO_MID_POS_TICKS,
     };
     Timer_A_initCompare(TIMER_A2_BASE, &compareConfig);
 
-    // [5] Set initial position
-    SERVO_HAL_setPosition(servo, 0);
+    /* [5] Init timer32 module used for waiting for the servo to be in place
+     * timer clock: MCLK / 256 = 24MHz / 256 = 93750 Hz => 0.01ms period */
+    Timer32_initModule(TIMER32_0_BASE, TIMER32_PRESCALER_256, TIMER32_32BIT, TIMER32_PERIODIC_MODE);
 
-    // [6] configure timer clock used to wait for servo motor to finish rotating
+    // [6] Wait for the servo to be at 0 deg position
+    Timer32_setCount(TIMER32_0_BASE, SERVO_ADJ_180DEG_TICKS);
+    Timer32_startTimer(TIMER32_0_BASE, true);
+    while(Timer32_getValue(TIMER32_0_BASE)!=0);
+    servo->state.position = 0;
 
-    /* sets ACLK to LFXT (onboard Low Frequency oscillator, 32kHz freq.)
-       ACLK will have a frequency of 32kHz                            */
-    CS_initClockSignal(CS_ACLK, CS_LFXTCLK_SELECT, CS_CLOCK_DIVIDER_1);
-
-    servoCallback = NULL;
+    // [7] Enable timer interrupts
+    Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    Timer32_enableInterrupt(TIMER32_0_INTERRUPT);
+    Interrupt_enableInterrupt(INT_T32_INT1);
 
     Interrupt_enableMaster();
 }
@@ -170,7 +176,11 @@ uint16_t SERVO_HAL_positionToTicks(int8_t position) {
  *          None
  *
  *  NOTE:
- *      Will generate a Capture Compare Interrupt on Timer A0 when servo has finished moving
+ *      Calculates the number to insert in the timer32 countdown using this formula:
+ *          ticks = (abs(targetPos - currentPos) / 180) * SERVO_ADJ_180DEG_TICKS
+ *      where the number of ticks is the result of the proportion between the angle that the servo
+ *      has to traver and the time to travel 180 deg.
+ *      The servoCallback is registered as interrupt handler for the Timer32 interrupt.
  */
 void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
     if (position < SERVO_MIN_POSITION)
@@ -186,32 +196,22 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
     Timer_A_setCompareValue(TIMER_A2_BASE, servo->ccr, dutyCycleTicks);
     Timer_A_clearTimer(TIMER_A2_BASE);
 
-    // starts timer to notify when servo has reached position
-    // it calculates how much time to wait based on the change in position
-    uint16_t period = (abs(position - servo->state.position) / 180) * SERVO_TIME_FULL_ROT;
-    Timer_A_UpModeConfig upConfigServo = {
-        TIMER_A_CLOCKSOURCE_ACLK,            // ACLK = 32kHz
-        TIMER_A_CLOCKSOURCE_DIVIDER_32,      // ACLK/32 = 1kHz -> 0.001s period
-        period / 0.001,                      // rotation time (s) / 0.001s
-        TIMER_A_TAIE_INTERRUPT_DISABLE,      // Disable Timer interrupt
-        TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE,  // Enable CCR0 interrupt
-        TIMER_A_DO_CLEAR,                    // Clear value
-    };
-    Timer_A_configureUpMode(TIMER_A0_BASE, &upConfigServo);
-    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
-    // enables Capture Compare interrupt on Timer A0
-    Interrupt_enableInterrupt(INT_TA0_0);
-
-    // Update servo info
-    servo->state.position = position;
+    // starts timer to notify when servo has reached position (one shot mode)
+    if(servo->state.position == position && servoCallback != NULL){
+        servoCallback();
+    } else {
+        uint32_t ticks = (abs(position - servo->state.position) * 1.0 / 180) * SERVO_ADJ_180DEG_TICKS;
+        Timer32_setCount(TIMER32_0_BASE, ticks);
+        Timer32_startTimer(TIMER32_0_BASE, true);
+        servo->state.position = position;
+    }
 }
 
-
 /*F************************************************************************************************
- * NAME: void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback)
+ * NAME: void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback)
  *
  * DESCRIPTION:
- *      Registers the ServoCallback as the function to call when servo motor reaches destination
+ *      Registers the ServoCallback as the function to call when servo motor reaches destination.
  *
  * INPUTS:
  *      PARAMETERS:
@@ -227,19 +227,21 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
  *
  *  NOTE:
  */
-void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback){
+void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback){
     servoCallback = callback;
 }
 
 /*ISR**********************************************************************************************
- * NAME: void PORT2_IRQHandler()
+ * NAME: void T32_INT1_IRQHandler()
  *
  * DESCRIPTION:
- *      This function is called when a Capture Compare interrupt happens on Timer A0
+ *      This function is called every time that the TIMER32_0 counter reaches zero, this means
+ *      that the servo has reached its final position.
+ *      This procedure calls the registered callback (if existing).
  *
  * INPUTS:
  *      GLOBALS:
- *          ServoCallback   servoCallback       callback function to execute
+ *          None
  *
  *  OUTPUTS:
  *      GLOBALS:
@@ -247,15 +249,9 @@ void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback){
  *
  *  NOTE:
  */
-void TA0_0_IRQHandler(void)
-{
-    // clears CC flag
-    Timer_A_clearCaptureCompareInterrupt(TIMER_A0_BASE,
-            TIMER_A_CAPTURECOMPARE_REGISTER_0);
-
-    // stops timer
-    Timer_A_stopTimer(TIMER_A0_BASE);
-
-    // executes callback function
-    servoCallback();
+// cppcheck-suppress unusedFunction
+void T32_INT1_IRQHandler(){
+    Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    if(servoCallback != NULL)
+        servoCallback();
 }

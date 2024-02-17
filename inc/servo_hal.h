@@ -7,6 +7,7 @@
  * PUBLIC FUNCTIONS:
  *      void    SERVO_HAL_init(Servo* servo);
  *      void    SERVO_HAL_setPosition(Servo* servo, int8_t position);
+ *      void    SERVO_HAL_registerPositionReachedCallback(ServoCallback callback);
  *
  * NOTES:
  *
@@ -16,13 +17,16 @@
  *
  * CHANGES:
  * DATE         AUTHOR              DETAIL
- * 13 Feb 2024  Andrea Piccin       Refactoring
  * 15 Feb 2024  Matteo Frizzera     Added functions to wait for servo to finish moving
+ * 16 Feb 2024  Andrea Piccin       Refactoring
  */
 #include <stdint.h>
 
 #ifndef SERVO_HAL_H
 #define SERVO_HAL_H
+
+#define SERVO_MIN_POSITION -90   /* Minimum position in deg */
+#define SERVO_MAX_POSITION 90    /* Maximum position in deg */
 
 /*T************************************************************************************************
  * NAME: ServoCallback
@@ -113,7 +117,7 @@ void SERVO_HAL_init(Servo *servo);
 void SERVO_HAL_setPosition(Servo *servo, int8_t position);
 
 /*F************************************************************************************************
- * NAME: void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback)
+ * NAME: void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback)
  *
  * DESCRIPTION:
  *      Registers the ServoCallback as the function to call when servo motor reaches destination
@@ -132,6 +136,6 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position);
  *
  *  NOTE:
  */
-void SERVO_HAL_registerFinishedMovingCallback(ServoCallback callback);
+void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback);
 
 #endif // SERVO_HAL_H
