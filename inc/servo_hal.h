@@ -17,8 +17,9 @@
  *
  * CHANGES:
  * DATE         AUTHOR              DETAIL
+ * 13 Feb 2024  Andrea Piccin       Refactoring
  * 15 Feb 2024  Matteo Frizzera     Added functions to wait for servo to finish moving
- * 16 Feb 2024  Andrea Piccin       Refactoring
+ * 16 Feb 2024  Andrea Piccin       Refactoring, MIN and MAX position moved to header file
  */
 #include <stdint.h>
 
