@@ -16,7 +16,6 @@
  * CHANGES:
  * DATE         AUTHOR          DETAIL
  */
-
 #include "../../inc/system.h"
 #include "../../inc/driverlib/driverlib.h"
 

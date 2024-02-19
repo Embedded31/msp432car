@@ -8,7 +8,6 @@
  *
  * PUBLIC FUNCTIONS:
  *      void        Sensing_Module_init()
- *      void        Sensing_Module_ultrasonicMeasurementReady(uint16_t distance)
  *      void        Sensing_Module_checkClearance(uint8_t deg)
  *      void        Sensing_Module_checkLeftClearance()
  *      void        Sensing_Module_checkRightClearance()
@@ -23,6 +22,7 @@
  * CHANGES:
  * DATE         AUTHOR              DETAIL
  * 16 Feb 2024  Andrea Piccin       Refactoring
+ * 19 Feb 2024  Andrea Piccin       Ultrasonic measurement callback moved to main.c
  */
 #include <stdint.h>
 
@@ -53,27 +53,6 @@
 void Sensing_Module_init();
 
 /*F************************************************************************************************
- * NAME: void Sensing_Module_ultrasonicMeasurementReady(uint16_t distance)
- *
- * DESCRIPTION:
- *      Callback function to execute when ultrasonic sensor has finished measurement.
- *
- * INPUTS:
- *      PARAMETERS:
- *          uint16_t distance       distance measured
- *      GLOBALS:
- *          None
- *
- *  OUTPUTS:
- *      PARAMETERS:
- *          None
- *      GLOBALS:
- *
- *  NOTE:
- */
-void Sensing_Module_ultrasonicMeasurementReady(uint16_t distance);
-
-/*F************************************************************************************************
  * NAME: void Sensing_Module_checkClearance(uint8_t deg)
  *
  * DESCRIPTION:
@@ -102,7 +81,7 @@ void Sensing_Module_checkClearance(uint8_t deg);
  * DESCRIPTION:
  *      Calls general function Sensing_Module_checkClearance to check wether there is an object on
  *      the left.
- * 
+ *
  * INPUTS:
  *      PARAMETERS:
  *          None
@@ -119,14 +98,13 @@ void Sensing_Module_checkClearance(uint8_t deg);
  */
 void Sensing_Module_checkLeftClearance();
 
-
 /*F************************************************************************************************
  * NAME: void Sensing_Module_checkRightClearance();
  *
  * DESCRIPTION:
  *      Calls general function Sensing_Module_checkClearance to check wether there is an object on
  *      the right.
- * 
+ *
  * INPUTS:
  *      PARAMETERS:
  *          None
@@ -149,7 +127,7 @@ void Sensing_Module_checkRightClearance();
  * DESCRIPTION:
  *      Calls general function Sensing_Module_checkClearance to check wether there is an object in
  *      front.
- * 
+ *
  * INPUTS:
  *      PARAMETERS:
  *          None
