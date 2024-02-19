@@ -35,6 +35,7 @@
 #include "../hal/bluetooth_hal.c"
 #include "../hal/battery_hal.c"
 #include "../hal/motor_hal.c"
+#include "powertrain_module.c"
 
 #define SEPARATOR ","   /*   the message will contain key - value pairs separated by commas      */
 
@@ -50,31 +51,31 @@ char buffer[MAX_MSG_LEN]; /* buffer to write msg content to before being sent ou
  * NAME: Telemetry_Module_init()
  *
  * DESCRIPTION:
- *      Initializes variables and components
+ *      Initializes components, registers callback regarding speed and direction changes for both
+ *      left and right motors
  *
  * INPUTS:
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
+ *          Powertrain      powertrain    struct containing both motors of the msp432car  
  *
  *  OUTPUTS:
  *      PARAMETERS:
  *          None
  *      GLOBALS:
  *          None
- *      RETURN:
- *          None
  *
  *  NOTE:
  */
-void Telemetry_Module_init(Motor *motorLeft, Motor *motor2){
+void Telemetry_Module_init(){
+    // register speed change callback
+    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.left_motor, &Telemetry_Module_NotifyMotorSpeedChange);
+    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.right_motor, &Telemetry_Module_NotifyMotorSpeedChange);
 
-    MOTOR_HAL_registerSpeedChangeCallback(&motor1, &Telemetry_Module_NotifyMotorSpeedChange);
-    MOTOR_HAL_registerSpeedChangeCallback(&motor2, &Telemetry_Module_NotifyMotorSpeedChange);
-
-    MOTOR_HAL_registerDirectionChangeCallback(&motor1, &Telemetry_Module_NotifyMotorDirChange);
-    MOTOR_HAL_registerDirectionChangeCallback(&motor1, &Telemetry_Module_NotifyMotorDirChange);
+    // register direction change callback
+    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.left_motor, &Telemetry_Module_NotifyMotorDirChange);
+    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.right_motor, &Telemetry_Module_NotifyMotorDirChange);
 
 }
 
@@ -174,7 +175,6 @@ void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryU
  *
  *  NOTE:
  */
-// TODO interrupt to automatically notify battery status when battery percentage drops
 void Telemetry_Module_NotifyBatteryStatus(){
     // [1] creates message struct containing battery information
     Message_BatteryStatusUpdate batteryUpdate;
@@ -383,7 +383,7 @@ void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetect
 
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction)
+ * NAME: void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance)
  *
  * DESCRIPTION:
  *      This functions creates and fills a message object detected struct with information about
@@ -405,10 +405,9 @@ void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetect
  *          None
  *
  *  NOTE:
- *      this function is called in an interrupt when a US measurement is ready, and it
+ *      this function is called in an interrupt when a US measurement is ready, when it
  *      detected an object close enough
  */
-// 
 void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance){
     Message_ObjectDetected objectDetected;
     objectDetected.messageInfo.severity = MSG_HIGH_SEVERITY;
@@ -418,11 +417,7 @@ void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t obje
 
     Telemetry_Module_SendMsgObjectDetected(&objectDetected);
 
-
 }
-
-
-
 
 
 
