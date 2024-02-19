@@ -66,11 +66,6 @@ volatile bool turned = false;       // Indicate whether a turn has been complete
  *  NOTE:
  */
 void FSM_init() {
-    // TODO: Move to system init
-    Powertrain_Module_init();
-    Sensing_Module_init();
-    // TODO: Init remote module
-
     // [1] Register the required callbacks
     Remote_Module_registerModeChangeRequestCallback(switchModeCallback);
     SERVO_HAL_registerPositionReachedCallback(rotateCallback);

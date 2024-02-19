@@ -19,6 +19,11 @@
 #include "../../inc/system.h"
 #include "../../inc/driverlib/driverlib.h"
 
+#include "../../inc/powertrain_module.h"
+#include "../../inc/remote_module.h"
+#include "../../inc/sensing_module.h"
+#include "../../inc/telemetry_module.h"
+
 #define DCO_FREQUENCY CS_DCO_FREQUENCY_24 // 24MHz
 
 /*F************************************************************************************************
@@ -29,6 +34,7 @@
  *      [1] Stop the watchdog timer
  *      [2] Configure wait states and voltage level
  *      [3] Set the centered frequency of the Digitally Controlled Oscillator (DCO)
+ *      [4] Init all modules
  *
  * INPUTS:
  *      PARAMETERS:
@@ -56,4 +62,10 @@ void system_init() {
 
     // [3] Set the centered frequency of the Digitally Controlled Oscillator (DCO)
     CS_setDCOCenteredFrequency(DCO_FREQUENCY);
+
+    // [4] Init all modules
+    Powertrain_Module_init();
+    Remote_Module_init();
+    Sensing_Module_init();
+    Telemetry_Module_init();
 }
