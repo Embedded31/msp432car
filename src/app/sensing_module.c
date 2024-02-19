@@ -8,7 +8,6 @@
  *
  * PUBLIC FUNCTIONS:
  *      void        Sensing_Module_init()
- *      void        Sensing_Module_ultrasonicMeasurementReady(uint16_t distance)
  *      void        Sensing_Module_checkClearance(uint8_t deg)
  *      void        Sensing_Module_checkLeftClearance()
  *      void        Sensing_Module_checkRightClearance()
@@ -22,17 +21,17 @@
  *
  * CHANGES:
  * DATE         AUTHOR              DETAIL
- * 15 Feb 2024  Matteo Frizzera     Added polling and global variable to wait for servo to reach target direction
+ * 15 Feb 2024  Matteo Frizzera     Added polling to wait for servo to reach target direction
  * 16 Feb 2024  Andrea Piccin       Refactoring, removed busy waiting mechanism
  */
 #include "../../inc/sensing_module.h"
-#include "../../inc/ultrasonic_hal.h"
 #include "../../inc/servo_hal.h"
+#include "../../inc/ultrasonic_hal.h"
 
-#define SERVO_POS_LEFT SERVO_MAX_POSITION   /* Position left                                     */
-#define SERVO_POS_FRONT 0                   /* Position front, meaning in between right and left */
-#define SERVO_POS_RIGHT SERVO_MIN_POSITION  /* Position right                                    */
-#define SENSING_MIN_DISTANCE_THRESHOLD 15   /* Minimum allowed distance before stopping the car  */
+#define SERVO_POS_LEFT SERVO_MAX_POSITION  /* Position left                                     */
+#define SERVO_POS_FRONT 0                  /* Position front, meaning in between right and left */
+#define SERVO_POS_RIGHT SERVO_MIN_POSITION /* Position right                                    */
+#define SENSING_MIN_DISTANCE_THRESHOLD 15  /* Minimum allowed distance before stopping the car  */
 
 Servo servo; /* servo motor on which the ultrasonic sensor is mounted */
 
@@ -57,37 +56,10 @@ Servo servo; /* servo motor on which the ultrasonic sensor is mounted */
  *
  *  NOTE:
  */
-void Sensing_Module_init(){
+void Sensing_Module_init() {
     US_HAL_init();
     SERVO_HAL_init(&servo);
-    US_HAL_registerMeasurementCallback(Sensing_Module_ultrasonicMeasurementReady);
     SERVO_HAL_registerPositionReachedCallback(US_HAL_triggerMeasurement);
-}
-
-/*F************************************************************************************************
- * NAME: void Sensing_Module_ultrasonicMeasurementReady(uint16_t distance)
- *
- * DESCRIPTION:
- *      Callback function to execute when the ultrasonic sensor measurement is ready
- *
- * INPUTS:
- *      PARAMETERS:
- *          uint16_t distance       distance measured
- *      GLOBALS:
- *          None
- *
- *  OUTPUTS:
- *      PARAMETERS:
- *          None
- *      GLOBALS:
- *          None
- *
- *  NOTE:
- */
-void Sensing_Module_ultrasonicMeasurementReady(uint16_t distance){
-    if(distance < SENSING_MIN_DISTANCE_THRESHOLD){
-        //TODO: stop motors and other actions
-    }
 }
 
 /*F************************************************************************************************
@@ -113,10 +85,7 @@ void Sensing_Module_ultrasonicMeasurementReady(uint16_t distance){
  *
  *  NOTE:
  */
-void Sensing_Module_checkClearance(uint8_t deg){
-    SERVO_HAL_setPosition(&servo, deg);
-}
-
+void Sensing_Module_checkClearance(uint8_t deg) { SERVO_HAL_setPosition(&servo, deg); }
 
 /*F************************************************************************************************
  * NAME: void Sensing_Module_checkLeftClearance
@@ -124,7 +93,7 @@ void Sensing_Module_checkClearance(uint8_t deg){
  * DESCRIPTION:
  *      Calls general function Sensing_Module_checkClearance to check wether there is an object on
  *      the left.
- * 
+ *
  * INPUTS:
  *      PARAMETERS:
  *          None
@@ -139,9 +108,7 @@ void Sensing_Module_checkClearance(uint8_t deg){
  *
  *  NOTE:
  */
-void Sensing_Module_checkLeftClearance(){
-    Sensing_Module_checkClearance(SERVO_POS_LEFT);
-}
+void Sensing_Module_checkLeftClearance() { Sensing_Module_checkClearance(SERVO_POS_LEFT); }
 
 /*F************************************************************************************************
  * NAME: void Sensing_Module_checkRightClearance
@@ -149,7 +116,7 @@ void Sensing_Module_checkLeftClearance(){
  * DESCRIPTION:
  *      Calls general function Sensing_Module_checkClearance to check wether there is an object on
  *      the right.
- * 
+ *
  * INPUTS:
  *      PARAMETERS:
  *          None
@@ -164,10 +131,7 @@ void Sensing_Module_checkLeftClearance(){
  *
  *  NOTE:
  */
-void Sensing_Module_checkRightClearance(){
-    Sensing_Module_checkClearance(SERVO_POS_RIGHT);
-}
-
+void Sensing_Module_checkRightClearance() { Sensing_Module_checkClearance(SERVO_POS_RIGHT); }
 
 /*F************************************************************************************************
  * NAME: void Sensing_Module_checkClearance_FRONT
@@ -175,7 +139,7 @@ void Sensing_Module_checkRightClearance(){
  * DESCRIPTION:
  *      Calls general function Sensing_Module_checkClearance to check wether there is an object in
  *      front.
- * 
+ *
  * INPUTS:
  *      PARAMETERS:
  *          None
@@ -190,6 +154,4 @@ void Sensing_Module_checkRightClearance(){
  *
  *  NOTE:
  */
-void Sensing_Module_checkFrontClearance(){
-    Sensing_Module_checkClearance(SERVO_POS_FRONT);
-}
+void Sensing_Module_checkFrontClearance() { Sensing_Module_checkClearance(SERVO_POS_FRONT); }
