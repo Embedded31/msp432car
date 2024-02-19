@@ -83,10 +83,10 @@ void IR_HAL_init() {
 
     // [2] Timer configuration
     const Timer_A_ContinuousModeConfig contConfig = {
-            TIMER_A_CLOCKSOURCE_ACLK,       // 32768 Hz
-            TIMER_A_CLOCKSOURCE_DIVIDER_4,  // 32768 / 4 = 8192 Hz
-            TIMER_A_TAIE_INTERRUPT_DISABLE, // disable overflow interrupt
-            TIMER_A_DO_CLEAR                // clear the counter on overflow
+        TIMER_A_CLOCKSOURCE_ACLK,       // 32768 Hz
+        TIMER_A_CLOCKSOURCE_DIVIDER_4,  // 32768 / 4 = 8192 Hz
+        TIMER_A_TAIE_INTERRUPT_DISABLE, // disable overflow interrupt
+        TIMER_A_DO_CLEAR,               // clear the counter on overflow
     };
     Timer_A_configureContinuousMode(TIMER_A3_BASE, &contConfig);
     Timer_A_startCounter(TIMER_A3_BASE, TIMER_A_CONTINUOUS_MODE);
