@@ -22,6 +22,7 @@
  * CHANGES:
  * DATE         AUTHOR              DETAIL
  * 16 Feb 2024  Andrea Piccin       Refactoring
+ * 19 Feb 2024  Andrea Piccin       Ultrasonic measurement callback moved to main.c
  */
 #include <stdint.h>
 

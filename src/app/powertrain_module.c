@@ -32,13 +32,13 @@
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/powertrain_module.h"
 
-#define PI 3.14159265358979323846       // PI value
-#define POWERTRAIN_FWD_SPEED 40         // Default powertrain speed
-#define POWERTRAIN_REV_SPEED 20
-#define POWERTRAIN_TURN_SPEED 50
-#define WHEEL_DIAMETER 5                // Wheel diameter in centimeters
-#define WHEEL_MAX_ROTATION_SPEED 60     // Wheel maximum rotation speed in rotations per minute
-#define WHEEL_MAX_ANGULAR_SPEED 45      // Wheel maximum angular speed in degrees per second
+#define PI 3.14159265358979323846   /* PI value                                             */
+#define POWERTRAIN_FWD_SPEED 40     /* Default speed for forward movements                  */
+#define POWERTRAIN_REV_SPEED 20     /* Default speed for backward movements                 */
+#define POWERTRAIN_TURN_SPEED 50    /* Default speed for turns                              */
+#define WHEEL_DIAMETER 5            /* Wheel diameter in centimeters                        */
+#define WHEEL_MAX_ROTATION_SPEED 60 /* Wheel maximum rotation speed in rotations per minute */
+#define WHEEL_MAX_ANGULAR_SPEED 45  /* Wheel maximum angular speed in degrees per second    */
 
 /*T************************************************************************************************
  * NAME: Powertrain
@@ -57,14 +57,13 @@ typedef struct {
 } Powertrain;
 
 // Functions delcaration
-void wait_milliseconds(uint32_t time);                                      // Wait the specified amount of milliseconds
-uint32_t calculate_time_from_angle(uint8_t speedPercentage, uint8_t angle);           // Calculate the time required to turn to the specified angle in degrees
-uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance);     // Calculate the time required to move by the specified distance in centimeters
+void wait_milliseconds(uint32_t time);
+uint32_t calculate_time_from_angle(uint8_t speedPercentage, uint8_t angle);
+uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance);
 
 // Static and global variables
-volatile static Powertrain powertrain;      // Store the powertrain struct
-volatile bool interruptFlag = false;        // Store whether the stop interrupt has been called
-PowertrainCallback powertrainCallback = NULL;
+volatile static Powertrain powertrain;        /* Store the powertrain struct            */
+PowertrainCallback powertrainCallback = NULL; /* function to invoke on position reached */
 
 /*F************************************************************************************************
  * NAME: void Powertrain_Module_init()
@@ -129,9 +128,9 @@ void Powertrain_Module_init() {
  *  NOTE:
  */
 void Powertrain_Module_stop() {
-    if(powertrain.left_motor.state.speed > 0)
+    if (powertrain.left_motor.state.speed > 0)
         MOTOR_HAL_stop(&powertrain.left_motor);
-    if(powertrain.right_motor.state.speed > 0)
+    if (powertrain.right_motor.state.speed > 0)
         MOTOR_HAL_stop(&powertrain.right_motor);
 }
 
@@ -153,9 +152,9 @@ void Powertrain_Module_stop() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          Motor   powertrain.left_motor   Speed set to POWERTRAIN_SPEED
+ *          Motor   powertrain.left_motor   Speed set to POWERTRAIN_FWD_SPEED
  *                                          Direction set to MOTOR_DIR_FORWARD
- *          Motor   powertrain.right_motor  Speed set to POWERTRAIN_SPEED
+ *          Motor   powertrain.right_motor  Speed set to POWERTRAIN_FWD_SPEED
  *                                          Direction set to MOTOR_DIR_FORWARD
  *
  *  NOTE:
@@ -187,7 +186,10 @@ void Powertrain_Module_moveForward() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
+ *          Motor   powertrain.left_motor   Speed set to POWERTRAIN_REV_SPEED
+ *                                          Direction set to MOTOR_DIR_REVERSE
+ *          Motor   powertrain.right_motor  Speed set to POWERTRAIN_REV_SPEED
+ *                                          Direction set to MOTOR_DIR_REVERSE
  *
  *  NOTE:
  */
@@ -221,7 +223,6 @@ void Powertrain_Module_moveBackward() {
  *          None
  *
  *  NOTE:
- *      The execution will be halted until the robot travel the specified distance or until the stop function is called.
  */
 void Powertrain_Module_moveForwardBy(uint8_t distance) {
     // [1] Move the robot forward infinitely
@@ -281,7 +282,10 @@ void Powertrain_Module_moveBackwardBy(uint8_t distance) {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
+ *          Motor   powertrain.left_motor   Speed set to POWERTRAIN_TURN_SPEED
+ *                                          Direction set to MOTOR_DIR_REVERSE
+ *          Motor   powertrain.right_motor  Speed set to POWERTRAIN_TURN_SPEED
+ *                                          Direction set to MOTOR_DIR_FORWARD
  *
  *  NOTE:
  */
@@ -315,7 +319,10 @@ void Powertrain_Module_turnLeft(uint8_t angle) {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
+ *          Motor   powertrain.left_motor   Speed set to POWERTRAIN_TURN_SPEED
+ *                                          Direction set to MOTOR_DIR_FORWARD
+ *          Motor   powertrain.right_motor  Speed set to POWERTRAIN_TURN_SPEED
+ *                                          Direction set to MOTOR_DIR_REVERSE
  *
  *  NOTE:
  */
@@ -433,7 +440,7 @@ uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance)
  *
  *  NOTE:
  */
-void Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback){
+void Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback) {
     powertrainCallback = callback;
 }
 

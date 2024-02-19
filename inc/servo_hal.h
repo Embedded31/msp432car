@@ -26,8 +26,8 @@
 #ifndef SERVO_HAL_H
 #define SERVO_HAL_H
 
-#define SERVO_MIN_POSITION -90   /* Minimum position in deg */
-#define SERVO_MAX_POSITION 90    /* Maximum position in deg */
+#define SERVO_MIN_POSITION -90 /* Minimum position in deg */
+#define SERVO_MAX_POSITION 90  /* Maximum position in deg */
 
 /*T************************************************************************************************
  * NAME: ServoCallback
@@ -125,7 +125,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position);
  *
  * INPUTS:
  *      PARAMETERS:
- *          ServoCallback callback                  The function to register as callback         
+ *          ServoCallback callback                  The function to register as callback
  *      GLOBALS:
  *          None
  *

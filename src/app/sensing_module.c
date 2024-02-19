@@ -23,6 +23,7 @@
  * DATE         AUTHOR              DETAIL
  * 15 Feb 2024  Matteo Frizzera     Added polling to wait for servo to reach target direction
  * 16 Feb 2024  Andrea Piccin       Refactoring, removed busy waiting mechanism
+ * 19 Feb 2024  Andrea Piccin       Ultrasonic measurement callback moved to main.c
  */
 #include "../../inc/sensing_module.h"
 #include "../../inc/servo_hal.h"

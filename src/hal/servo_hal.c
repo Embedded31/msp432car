@@ -27,8 +27,8 @@
  */
 #include <stdlib.h>
 
-#include "../../inc/servo_hal.h"
 #include "../../inc/driverlib/driverlib.h"
+#include "../../inc/servo_hal.h"
 
 #define SERVO_PORT GPIO_PORT_P5    /* Port for the PWM signals                                */
 #define SERVO_PIN GPIO_PIN6        /* Pin for the PWM signals                                 */
@@ -43,7 +43,7 @@
  * a full rotation in which the correction coefficient is already applied */
 #define SERVO_ADJ_180DEG_TICKS (SERVO_180DEG_TICKS * SERVO_LOAD_COEFFICIENT)
 
-ServoCallback servoCallback;    /* function to execute when the servo reaches its final position */
+ServoCallback servoCallback; /* function to execute when the servo reaches its final position */
 
 /*F************************************************************************************************
  * NAME: void SERVO_HAL_init(Servo* servo);
@@ -112,7 +112,8 @@ void SERVO_HAL_init(Servo *servo) {
     // [6] Wait for the servo to be at 0 deg position
     Timer32_setCount(TIMER32_0_BASE, SERVO_ADJ_180DEG_TICKS);
     Timer32_startTimer(TIMER32_0_BASE, true);
-    while(Timer32_getValue(TIMER32_0_BASE)!=0);
+    while (Timer32_getValue(TIMER32_0_BASE) != 0)
+        ;
     servo->state.position = 0;
 
     // [7] Enable timer interrupts
@@ -197,10 +198,11 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
     Timer_A_clearTimer(TIMER_A2_BASE);
 
     // starts timer to notify when servo has reached position (one shot mode)
-    if(servo->state.position == position && servoCallback != NULL){
+    if (servo->state.position == position && servoCallback != NULL) {
         servoCallback();
     } else {
-        uint32_t ticks = (abs(position - servo->state.position) * 1.0 / 180) * SERVO_ADJ_180DEG_TICKS;
+        uint32_t ticks =
+            (abs(position - servo->state.position) * 1.0 / 180) * SERVO_ADJ_180DEG_TICKS;
         Timer32_setCount(TIMER32_0_BASE, ticks);
         Timer32_startTimer(TIMER32_0_BASE, true);
         servo->state.position = position;
@@ -215,7 +217,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
  *
  * INPUTS:
  *      PARAMETERS:
- *          ServoCallback callback                  The function to register as callback         
+ *          ServoCallback callback                  The function to register as callback
  *      GLOBALS:
  *          None
  *
@@ -227,9 +229,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
  *
  *  NOTE:
  */
-void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback){
-    servoCallback = callback;
-}
+void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback) { servoCallback = callback; }
 
 /*ISR**********************************************************************************************
  * NAME: void T32_INT1_IRQHandler()
@@ -250,8 +250,8 @@ void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback){
  *  NOTE:
  */
 // cppcheck-suppress unusedFunction
-void T32_INT1_IRQHandler(){
+void T32_INT1_IRQHandler() {
     Timer32_clearInterruptFlag(TIMER32_0_BASE);
-    if(servoCallback != NULL)
+    if (servoCallback != NULL)
         servoCallback();
 }
