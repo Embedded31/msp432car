@@ -28,7 +28,7 @@
  */
 #include <stdint.h>
 
-#include "../../inc/motor_hal.h"
+#include "motor_hal.h"
 
 #ifndef POWERTRAIN_MODULE_H_
 #define POWERTRAIN_MODULE_H_
