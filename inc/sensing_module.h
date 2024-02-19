@@ -7,11 +7,13 @@
  *      objects in front, on the left, or on the right of the msp432car.
  *
  * PUBLIC FUNCTIONS:
- *      void        Sensing_Module_init()
- *      void        Sensing_Module_checkClearance(uint8_t deg)
- *      void        Sensing_Module_checkLeftClearance()
- *      void        Sensing_Module_checkRightClearance()
- *      void        Sensing_Module_checkFrontClearance()
+ *      void    Sensing_Module_init()
+ *      void    Sensing_Module_checkSingleClearance(int8_t deg)
+ *      void    Sensing_Module_checkDoubleClearance(int8_t deg1, int8t deg2)
+ *      void    Sensing_Module_checkFrontClearance()
+ *      void    Sensing_Module_checkLateralClearance()
+ *      void    Sensing_Module_registerSingleMeasurementReadyCallback(SensingSingleCallback call)
+ *      void    Sensing_Module_registerDoubleMeasurementReadyCallback(SensingDoubleCallback call)
  *
  * NOTES:
  *
@@ -22,12 +24,37 @@
  * CHANGES:
  * DATE         AUTHOR              DETAIL
  * 16 Feb 2024  Andrea Piccin       Refactoring
- * 19 Feb 2024  Andrea Piccin       Ultrasonic measurement callback moved to state_machine.c
+ * 19 Feb 2024  Andrea Piccin       Single (front) and Double (lateral) measurements callbacks
  */
 #include <stdint.h>
 
 #ifndef SENSING_MODULE_H
 #define SENSING_MODULE_H
+
+/*T************************************************************************************************
+ * NAME: SensingSingleCallback
+ *
+ * DESCRIPTION:
+ *      It's a pointer to a function that executes when a single ultrasonic measurement is ready
+ *
+ * SPECIFICATIONS:
+ *      Type:   void*
+ *      Args:   bool    isFree      True if the path is clear, false otherwise
+ */
+typedef void (*SensingSingleCallback)(bool isFree);
+
+/*T************************************************************************************************
+ * NAME: SensingDoubleCallback
+ *
+ * DESCRIPTION:
+ *      It's a pointer to a function that executes when a double ultrasonic measurement is ready
+ *
+ * SPECIFICATIONS:
+ *      Type:   void*
+ *      Args:   bool    isDir1Free      True if the path is clear, false otherwise
+ *              bool    isDir2Free      True if the path is clear, false otherwise
+ */
+typedef void (*SensingDoubleCallback)(bool isDir1Free, bool isDir2Free);
 
 /*F************************************************************************************************
  * NAME: void Sensing_Module_init()
@@ -53,7 +80,7 @@
 void Sensing_Module_init();
 
 /*F************************************************************************************************
- * NAME: void Sensing_Module_checkClearance(uint8_t deg)
+ * NAME: void Sensing_Module_checkSingleClearance(int8_t deg)
  *
  * DESCRIPTION:
  *      Moves motor to specified direction (from left -90 deg to right 90 deg) then uses ultrasonic
@@ -73,14 +100,38 @@ void Sensing_Module_init();
  *
  *  NOTE:
  */
-void Sensing_Module_checkClearance(uint8_t deg);
+void Sensing_Module_checkSingleClearance(int8_t deg);
 
 /*F************************************************************************************************
- * NAME: void Sensing_Module_checkLeftClearance()
+ * NAME: void Sensing_Module_checkDoubleClearance(int8_t deg1, int8 deg2)
  *
  * DESCRIPTION:
- *      Calls general function Sensing_Module_checkClearance to check wether there is an object on
- *      the left.
+ *      Moves motor to specified direction (from left -90 deg to right 90 deg) then uses ultrasonic
+ *      sensor to check if there is an object in that direction, then checks in the same way the
+ *      second direction.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          int8_t deg1     first direction to check
+ *          int8_t deg2     second direction to check
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void Sensing_Module_checkDoubleClearance(int8_t deg1, int8_t deg2);
+
+/*F************************************************************************************************
+ * NAME: void Sensing_Module_checkLateralClearance()
+ *
+ * DESCRIPTION:
+ *      Checks if there is an object on the left or on the right of the robot.
  *
  * INPUTS:
  *      PARAMETERS:
@@ -96,37 +147,14 @@ void Sensing_Module_checkClearance(uint8_t deg);
  *
  *  NOTE:
  */
-void Sensing_Module_checkLeftClearance();
-
-/*F************************************************************************************************
- * NAME: void Sensing_Module_checkRightClearance();
- *
- * DESCRIPTION:
- *      Calls general function Sensing_Module_checkClearance to check wether there is an object on
- *      the right.
- *
- * INPUTS:
- *      PARAMETERS:
- *          None
- *      GLOBALS:
- *          None
- *
- *  OUTPUTS:
- *      PARAMETERS:
- *          None
- *      GLOBALS:
- *          None
- *
- *  NOTE:
- */
-void Sensing_Module_checkRightClearance();
+void Sensing_Module_checkLateralClearance();
 
 /*F************************************************************************************************
  * NAME: void Sensing_Module_checkFrontClearance()
  *
  * DESCRIPTION:
- *      Calls general function Sensing_Module_checkClearance to check wether there is an object in
- *      front.
+ *      Calls general function Sensing_Module_checkClearance to check if there is an object in
+ *      front of the robot.
  *
  * INPUTS:
  *      PARAMETERS:
@@ -143,5 +171,51 @@ void Sensing_Module_checkRightClearance();
  *  NOTE:
  */
 void Sensing_Module_checkFrontClearance();
+
+/*F************************************************************************************************
+ * NAME: void Sensing_Module_registerSingleMeasurementReadyCallback(SensingSingleCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the SensingSingleCallback as the function to call when the single measurement
+ *      is ready.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          SensingSingleCallback callback           The function to register as callback
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void Sensing_Module_registerSingleMeasurementReadyCallback(SensingSingleCallback callback);
+
+/*F************************************************************************************************
+ * NAME: Sensing_Module_registerDoubleMeasurementReadyCallback(SensingDoubleCallback callback)
+ *
+ * DESCRIPTION:
+ *      Registers the SensingDoubleCallback as the function to call when the double measurement
+ *      is ready.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          SensingDoubleCallback callback           The function to register as callback
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void Sensing_Module_registerDoubleMeasurementReadyCallback(SensingDoubleCallback callback);
 
 #endif // SENSING_MODULE_H

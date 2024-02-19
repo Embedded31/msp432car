@@ -187,13 +187,9 @@ void US_HAL_convertAndForward() {
      * if the time exceed 36ms return the no object detected value */
     uint16_t delta = endTick - startTick;
     uint16_t usec = delta / US_TICKS_TO_USEC_DIVIDER;
-    uint16_t distance;
-    if (usec > 36000)
+    uint16_t distance = (delta / US_TICKS_TO_CM_DIVIDER) - US_OFFSET_FIX;
+    if (usec > 36000 || distance > 250)
         distance = US_RESULT_NO_OBJECT;
-    else {
-        // convert the delta in cm and subtract the sensor's error
-        distance = (delta / US_TICKS_TO_CM_DIVIDER) - US_OFFSET_FIX;
-    }
 
     // invoke the callback function
     if (usCallback != NULL)

@@ -21,16 +21,17 @@
  * START DATE: 19 Feb 2024
  *
  * CHANGES:
+ * 19 Feb 2024  Simone Rossi    Updating and refactoring
  */
 #include <stdbool.h>
 
 #include "../../inc/state_machine.h"
 #include "../../inc/driverlib/driverlib.h"
 
-#include "../../inc/infrared_hal.h"
 #include "../../inc/powertrain_module.h"
 #include "../../inc/sensing_module.h"
-#include "../../inc/ultrasonic_hal.h"
+#include "../../inc/remote_module.h"
+#include "../../inc/servo_hal.h"
 
 void obstacleCallback();
 void rotateCallback();
@@ -65,16 +66,10 @@ volatile bool turned = false;       // Indicate whether a turn has been complete
  *  NOTE:
  */
 void FSM_init() {
-    // TODO: Move to system init
-    Powertrain_Module_init();
-    Sensing_Module_init();
-    // TODO: Init remote module
-
     // [1] Register the required callbacks
-    // TODO: Register obstacle detection callback
+    Remote_Module_registerModeChangeRequestCallback(switchModeCallback);
     SERVO_HAL_registerPositionReachedCallback(rotateCallback);
-    // TODO: Register sensing callback
-    // TODO: Register switch mode callback
+    // TODO: Register sensing callbacks (obstacle and sensing)
 
     // [2] Disable sleep on interrupt service routine exit
     Interrupt_disableSleepOnIsrExit();
@@ -224,7 +219,7 @@ void obstacleCallback() {
  *
  * DESCRIPTION:
  *      Callback to call when the robot has turned:
- *      [1] Update the turned variable
+ *      [1] If the state is STATE_SENSING set turned variable
  *
  * INPUTS:
  *      PARAMETERS:
@@ -241,8 +236,10 @@ void obstacleCallback() {
  *  NOTE:
  */
 void rotateCallback() {
-    // [1] Update the turned variable
-    turned = true;
+    // [1] If the state is STATE_SENSING set turned variable
+    if (FSM_currentState == STATE_SENSING) {
+        turned = true;
+    }
 }
 
 /*F************************************************************************************************
