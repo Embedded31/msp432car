@@ -227,9 +227,9 @@ void Powertrain_Module_increaseSpeed() {
     MotorState rightState = powertrain.right_motor.state;
 
     if (leftState.direction != MOTOR_DIR_STOP && leftState.speed < 100)
-        MOTOR_HAL_setSpeed(powertrain.left_motor, leftState.speed + 10);
+        MOTOR_HAL_setSpeed(&powertrain.left_motor, leftState.speed + 10);
     if (rightState.direction != MOTOR_DIR_STOP && rightState.speed < 100)
-        MOTOR_HAL_setSpeed(powertrain.right_motor, rightState.speed + 10);
+        MOTOR_HAL_setSpeed(&powertrain.right_motor, rightState.speed + 10);
 }
 
 /*F************************************************************************************************
@@ -257,9 +257,9 @@ void Powertrain_Module_decreaseSpeed() {
     MotorState rightState = powertrain.right_motor.state;
 
     if (leftState.direction != MOTOR_DIR_STOP && leftState.speed > 20)
-        MOTOR_HAL_setSpeed(powertrain.left_motor, leftState.speed - 10);
+        MOTOR_HAL_setSpeed(&powertrain.left_motor, leftState.speed - 10);
     if (rightState.direction != MOTOR_DIR_STOP && rightState.speed > 20)
-        MOTOR_HAL_setSpeed(powertrain.right_motor, rightState.speed - 10);
+        MOTOR_HAL_setSpeed(&powertrain.right_motor, rightState.speed - 10);
 }
 
 /*F************************************************************************************************
