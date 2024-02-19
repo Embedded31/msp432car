@@ -1,71 +1,57 @@
-/* --COPYRIGHT--,BSD
- * Copyright (c) 2015, Texas Instruments Incorporated
- * All rights reserved.
+/*C************************************************************************************************
+ * FILENAME:        main.c
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * DESCRIPTION:
+ *      This source file contains the main function that initialize the system
+ *      and start the finite state machine
  *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * PUBLIC FUNCTIONS:
+ *      void        main()
  *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * NOTES:
  *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+ * AUTHOR: Simone Rossi    <simone.rossi-2@studenti.unitn.it>
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * --/COPYRIGHT--*/
-//***************************************************************************************
-//  Blink the LED Demo - Software Toggle P1.0
-//
-//  Description; Toggle P1.0 inside of a software loop.
-//  ACLK = n/a, MCLK = SMCLK = default DCO
-//
-//                MSP432P4xx
-//             -----------------
-//         /|\|              XIN|-
-//          | |                 |
-//          --|RST          XOUT|-
-//            |                 |
-//            |             P1.0|-->LED
-//
-//  E. Chen
-//  Texas Instruments, Inc
-//  March 2015
-//  Built with Code Composer Studio v6
-//***************************************************************************************
+ * START DATE: 19 Feb 2024
+ *
+ * CHANGES:
+ */
+#include <stdbool.h>
 
-#include "../../inc/driverlib/driverlib.h"
+#include "../../inc/state_machine.h"
+#include "../../inc/system.h"
 
-int main(void) {
-    volatile uint32_t i;
+/*F************************************************************************************************
+ * NAME: void main()
+ *
+ * DESCRIPTION:
+ *      [1] Initialize the system
+ *      [2] Start the finite state machine
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void main(void) {
+    // [1] Initialize the system
+    system_init();
 
-    // Stop watchdog timer
-    WDT_A_holdTimer();
-
-    // Set P1.0 to output direction
-    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0);
-
-    while (1) {
-        // Toggle P1.0 output
-        GPIO_toggleOutputOnPin(GPIO_PORT_P1, GPIO_PIN0);
-
-        // Delay
-        for (i = 200000; i > 0; i--)
-            ;
-    }
+    // [2] Start the finite state machine
+    while(true) {
+       if(FSM_currentState < NUM_STATES){
+           (*FSM_stateMachine[FSM_currentState].function)();
+       } else {
+           while(true) {} // Error: unknown state, halting the system
+       }
+   }
 }
