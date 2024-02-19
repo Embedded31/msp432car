@@ -28,38 +28,38 @@
 #define TELEMETRY_MODULE_H
 
 /*T************************************************************************************************
- * NAME: eventSeverity
+ * NAME: MessageSeverity
  *
  * DESCRIPTION:
- *      Represent the severity (ie importance) of the event being sent
+ *      Represent the severity (ie importance) of the Message being sent
  *
  * SPECIFICATIONS:
  *      Type:   enum
- *      Values: LOW_SEVERITY        least important type of event
- *              MEDIUM_SEVERITY     event of medium or average importance
- *              HIGH_SEVERITY       most important event, relating to crucial and key parts of the system
+ *      Values: LOW_SEVERITY        least important type of message
+ *              MEDIUM_SEVERITY     message of medium or average importance
+ *              HIGH_SEVERITY       most important message, relating to crucial and key parts of the system
  */
-typedef enum { LOW_SEVERITY, MEDIUM_SEVERITY, HIGH_SEVERITY } EventSeverity;
+typedef enum { MSG_LOW_SEVERITY, MSG_MEDIUM_SEVERITY, MSG_HIGH_SEVERITY } MessageSeverity;
 
 
 /*T************************************************************************************************
- * NAME: eventSeverity
+ * NAME: MessageType
  *
  * DESCRIPTION:
- *      Represent the severity (ie importance) of the event being sent
+ *      Represent the type of Message that is being notified
  *
  * SPECIFICATIONS:
  *      Type:   enum
  *      Values: OBJECT_DETECTED                 detected an object in the path of the msp432car  
- *              BATTERY_PERCENTAGE_UPDATE       updates battery status, for example when battery is decreasing
+ *              BATTERY_STATUS_UPDATE           updates battery status, for example when battery is decreasing
  *              SPEED_UPDATE                    speed of motor has changed
  */
-typedef enum { OBJECT_DETECTED, BATTERY_PERCENTAGE_UPDATE, SPEED_UPDATE } EventType;
+typedef enum { MSG_OBJECT_DETECTED, MSG_BATTERY_STATUS_UPDATE, MSG_MOTOR_SPEED_UPDATE, MSG_MOTOR_DIR_UPDATE } MessageType;
 
 
 typedef struct Message_InfoStruct {
-    EventSeverity severity;
-    EventType type;
+    MessageSeverity severity;
+    MessageType type;
 };
 typedef struct Message_InfoStruct Message_Info;
 
@@ -72,11 +72,12 @@ typedef struct Message_ObjectDetectedStruct {
 typedef struct Message_ObjectDetectedStruct Message_ObjectDetected;
 
 
-typedef struct Message_BatteryPercentageUpdateStruct {
+typedef struct Message_BatteryStatusUpdateStruct {
     Message_Info messageInfo;
     uint8_t percentage;
+    uint16_t voltage;
 };
-typedef struct Message_BatteryPercentageUpdateStruct Message_BatteryPercentageUpdate;
+typedef struct Message_BatteryStatusUpdateStruct Message_BatteryStatusUpdate;
 
 
 typedef struct Message_MotorSpeedUpdateStruct {
