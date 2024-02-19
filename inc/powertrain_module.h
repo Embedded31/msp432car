@@ -10,8 +10,8 @@
  *      void    Powertrain_Module_stop()
  *      void    Powertrain_Module_moveForward()
  *      void    Powertrain_Module_moveBackward()
- *      void    Powertrain_Module_moveForwardBy(uint8_t distance)
- *      void    Powertrain_Module_moveBackwardBy(uint8_t distance)
+ *      void    Powertrain_Module_increaseSpeed()
+ *      void    Powertrain_Module_decreaseSpeed()
  *      void    Powertrain_Module_turnLeft(int8_t angle)
  *      void    Powertrain_Module_turnRight(int8_t angle)
  *      void    Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback)
@@ -24,7 +24,7 @@
  *
  * CHANGES:
  * DATE         AUTHOR          DETAIL
- * 19 Feb 2024  Andrea Piccin   Refactoring
+ * 19 Feb 2024  Andrea Piccin   Refactoring, removed move by distance, add speed management
  */
 #include <stdint.h>
 
@@ -136,14 +136,14 @@ void Powertrain_Module_moveForward();
 void Powertrain_Module_moveBackward();
 
 /*F************************************************************************************************
- * NAME: void Powertrain_Module_moveForwardBy(uint8_t distance);
+ * NAME: void Powertrain_Module_increaseSpeed();
  *
  * DESCRIPTION:
- *      Move the robot forward by the specified distance
+ *      Increases the speed of the motors by 10% (max 100%);
  *
  * INPUTS:
  *      PARAMETERS:
- *          uint8_t     distance       Specifies the distance to travel.
+ *          None
  *      GLOBALS:
  *          None
  *
@@ -154,20 +154,18 @@ void Powertrain_Module_moveBackward();
  *          None
  *
  *  NOTE:
- *      The execution will be halted until the robot travel the specified distance or until the
- *      stop function is called.
  */
-void Powertrain_Module_moveForwardBy(uint8_t distance);
+void Powertrain_Module_increaseSpeed();
 
 /*F************************************************************************************************
- * NAME: void Powertrain_Module_moveBackwardBy(uint8_t distance);
+ * NAME: void Powertrain_Module_decreaseSpeed();
  *
  * DESCRIPTION:
- *      Move the robot backward by the specified distance
+ *      Decreases the speed of the motors by 10% (min 20%);
  *
  * INPUTS:
  *      PARAMETERS:
- *          uint8_t     distance       Specifies the distance to travel.
+ *          None
  *      GLOBALS:
  *          None
  *
@@ -178,10 +176,8 @@ void Powertrain_Module_moveForwardBy(uint8_t distance);
  *          None
  *
  *  NOTE:
- *      The execution will be halted until the robot travel the specified distance or until the
- *      stop function is called.
  */
-void Powertrain_Module_moveBackwardBy(uint8_t distance);
+void Powertrain_Module_decreaseSpeed();
 
 /*F************************************************************************************************
  * NAME: void Powertrain_Module_turnLeft(uint8_t angle);

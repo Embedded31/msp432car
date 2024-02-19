@@ -10,10 +10,10 @@
  *      void    Powertrain_Module_stop()
  *      void    Powertrain_Module_moveForward()
  *      void    Powertrain_Module_moveBackward()
- *      void    Powertrain_Module_moveForwardBy(uint8_t distance)
- *      void    Powertrain_Module_moveBackwardBy(uint8_t distance)
- *      void    Powertrain_Module_turnLeft(int8_t angle)
- *      void    Powertrain_Module_turnRight(int8_t angle)
+ *      void    Powertrain_Module_increaseSpeed()
+ *      void    Powertrain_Module_decreaseSpeed()
+ *      void    Powertrain_Module_turnLeft(uint8_t angle)
+ *      void    Powertrain_Module_turnRight(uint8_t angle)
  *      void    Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback)
  *
  * NOTES:
@@ -24,7 +24,7 @@
  *
  * CHANGES:
  * DATE         AUTHOR          DETAIL
- * 19 Feb 2024  Andrea Piccin   Refactoring, removed busy waiting mechanisms
+ * 19 Feb 2024  Andrea Piccin   Refactoring, removed busy waiting mechanisms, add speed management
  */
 #include <stdbool.h>
 #include <stddef.h>
@@ -203,65 +203,63 @@ void Powertrain_Module_moveBackward() {
 }
 
 /*F************************************************************************************************
- * NAME: void Powertrain_Module_moveForwardBy(uint8_t distance);
+ * NAME: void Powertrain_Module_increaseSpeed();
  *
  * DESCRIPTION:
- *      Move the robot forward by the specified distance
- *      [1] Move the robot forward infinitely
- *      [2] Wait the required milliseconds to travel the specified distance
+ *      Increases the speed of the motors by 10% (max 100%);
  *
  * INPUTS:
  *      PARAMETERS:
- *          uint8_t     distance       Specifies the distance to travel.
- *      GLOBALS:
  *          None
+ *      GLOBALS:
+ *          Powertrain      powertrain      Set of motors to manange
  *
  *  OUTPUTS:
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
+ *          Powertrain      powertrain      Motor's speed increased by 10
  *
  *  NOTE:
  */
-void Powertrain_Module_moveForwardBy(uint8_t distance) {
-    // [1] Move the robot forward infinitely
-    Powertrain_Module_moveForward();
+void Powertrain_Module_increaseSpeed() {
+    MotorState leftState = powertrain.left_motor.state;
+    MotorState rightState = powertrain.right_motor.state;
 
-    // [2] Wait the required milliseconds to travel the specified distance
-    uint32_t time = calculate_time_from_distance(POWERTRAIN_FWD_SPEED, distance);
-    wait_milliseconds(time);
+    if (leftState.direction != MOTOR_DIR_STOP && leftState.speed < 100)
+        MOTOR_HAL_setSpeed(powertrain.left_motor, leftState.speed + 10);
+    if (rightState.direction != MOTOR_DIR_STOP && rightState.speed < 100)
+        MOTOR_HAL_setSpeed(powertrain.right_motor, rightState.speed + 10);
 }
 
 /*F************************************************************************************************
- * NAME: void Powertrain_Module_moveBackwardBy(uint8_t distance);
+ * NAME: void Powertrain_Module_decreaseSpeed();
  *
  * DESCRIPTION:
- *      Move the robot backward by the specified distance
- *      [1] Move the robot backward infinitely
- *      [2] Wait the required milliseconds to travel the specified distance
+ *      Decreases the speed of the motors by 10% (min 20%);
  *
  * INPUTS:
  *      PARAMETERS:
- *          uint8_t     distance       Specifies the distance to travel.
- *      GLOBALS:
  *          None
+ *      GLOBALS:
+ *          Powertrain      powertrain      Set of motors to manange
  *
  *  OUTPUTS:
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          None
+ *          Powertrain      powertrain      Motor's speed decreased by 10
  *
  *  NOTE:
  */
-void Powertrain_Module_moveBackwardBy(uint8_t distance) {
-    // [1] Move the robot backward infinitely
-    Powertrain_Module_moveBackward();
+void Powertrain_Module_decreaseSpeed() {
+    MotorState leftState = powertrain.left_motor.state;
+    MotorState rightState = powertrain.right_motor.state;
 
-    // [2] Wait the required milliseconds to travel the specified distance
-    uint32_t time = calculate_time_from_distance(POWERTRAIN_REV_SPEED, distance);
-    wait_milliseconds(time);
+    if (leftState.direction != MOTOR_DIR_STOP && leftState.speed > 20)
+        MOTOR_HAL_setSpeed(powertrain.left_motor, leftState.speed - 10);
+    if (rightState.direction != MOTOR_DIR_STOP && rightState.speed > 20)
+        MOTOR_HAL_setSpeed(powertrain.right_motor, rightState.speed - 10);
 }
 
 /*F************************************************************************************************
