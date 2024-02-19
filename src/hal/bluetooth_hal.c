@@ -54,6 +54,7 @@
  *                  TX_MESSAGE      When the body of the message is being transmitted
  *                  TX_CR           When the carriage return '\r' char have to be sent
  *                  TX_LF           When the line feed '\n' char have to be sent
+ *                  TX_PADDING      When a padding char '\0' have to be sent
  */
 typedef enum { TX_IDLE, TX_MESSAGE, TX_CR, TX_LF, TX_PADDING } TxState;
 
@@ -311,7 +312,7 @@ void EUSCIA2_IRQHandler(void) {
                 UART_transmitData(BT_EUSCI_BASE, *currentTxPointer);
                 currentTxPointer++;
             } else {
-                char* sentString = queue_dequeue(&outgoingMessagesQueue);
+                char *sentString = queue_dequeue(&outgoingMessagesQueue);
                 padding = strlen(sentString) - 2;
                 currentTxState = TX_CR;
             }
@@ -327,10 +328,10 @@ void EUSCIA2_IRQHandler(void) {
 
         /* if the state is TX_PADDING send a padding char, if no more padding chars have to be sent
          * switch to TX_IDLE state */
-        else if(currentTxState == TX_PADDING){
+        else if (currentTxState == TX_PADDING) {
             UART_transmitData(BT_EUSCI_BASE, '\0');
             padding--;
-            if(padding==0)
+            if (padding == 0)
                 currentTxState = TX_IDLE;
         }
     }
