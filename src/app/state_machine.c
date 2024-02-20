@@ -344,6 +344,6 @@ void switchModeCallback() {
  */
 // cppcheck-suppress unusedFunction
 void T32_INT2_IRQHandler() {
-    Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    Timer32_clearInterruptFlag(TIMER32_1_BASE);
     Sensing_Module_checkFrontClearance();
 }
