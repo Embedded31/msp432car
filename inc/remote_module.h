@@ -74,6 +74,6 @@ void Remote_Module_init();
  *
  *  NOTE:
  */
-void Remote_Module_registerAutoModeRequestCallback(RemoteCallback callback);
+void Remote_Module_registerModeChangeRequestCallback(RemoteCallback callback);
 
 #endif //REMOTE_MODULE_H
