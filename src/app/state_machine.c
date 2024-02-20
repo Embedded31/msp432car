@@ -14,6 +14,7 @@
  *      void        rotateCallback()
  *      void        sensingCallback()
  *      void        switchModeCallback()
+ *      void        timerCallback()
  *
  * NOTES:
  *
@@ -33,17 +34,17 @@
 #include "../../inc/sensing_module.h"
 #include "../../inc/state_machine.h"
 
+#ifndef TEST
+    #include "../../inc/timer_hal.h"
+#endif
+
 #define SENSING_TIMER_COUNT 46875 // 24MHz / 256 / 46875 = 2Hz = 0.5s
 
 void obstacleCallback(bool free);
 void turnedCallback();
 void sensingCallback(bool free_left, bool free_right);
 void switchModeCallback();
-
-volatile bool controlled = true;  // Indicate whether the robot is being remotely controlled
-volatile bool obstructed = false; // Indicate whether the path is obstructed by an obstacle
-volatile bool sensing = false;    // Indicate whether the sensing procedure has been completed
-volatile bool turned = false;     // Indicate whether a turn has been completed
+void timerCallback();
 
 FSM_State FSM_currentState = STATE_INIT; // Current FSM state
 FSM_StateMachine FSM_stateMachine[] = {
@@ -60,7 +61,7 @@ FSM_StateMachine FSM_stateMachine[] = {
  *      [1] Register the required callbacks
  *      [2] Disable sleep on interrupt service routine exit
  *      [3] Initialize timer32 module used for periodically probing for obstacles
- *      [4] Enable timer interrupts
+ *      [4] Register timer callback
  *      [5] Update current state
  *
  * INPUTS:
@@ -90,14 +91,10 @@ void FSM_init() {
     Interrupt_disableSleepOnIsrExit();
 
     // [3] Initialize timer32 module used for periodically probing for obstacles
-    Timer32_initModule(TIMER32_1_BASE, TIMER32_PRESCALER_256, TIMER32_32BIT, TIMER32_PERIODIC_MODE);
-    Timer32_setCount(TIMER32_1_BASE, SENSING_TIMER_COUNT);
-    Timer32_startTimer(TIMER32_1_BASE, true);
+    TIMER_HAL_setupPeriodicTimer(SENSING_TIMER_COUNT);
 
-    // [4] Enable timer interrupts
-    Timer32_clearInterruptFlag(TIMER32_1_BASE);
-    Timer32_enableInterrupt(TIMER32_1_INTERRUPT);
-    Interrupt_enableInterrupt(INT_T32_INT2);
+    // [4] Register timer callback
+    TIMER_HAL_registerPeriodicTimerCallback(timerCallback);
 
     // [5] Update current state
     FSM_currentState = STATE_REMOTE;
@@ -110,9 +107,6 @@ void FSM_init() {
  *
  * DESCRIPTION:
  *      Handle the STATE_RUNNING state:
- *      [1] Start moving forward
- *      [2] Sleep until an obstacle is met or remotely controlled
- *      [3] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
@@ -124,32 +118,17 @@ void FSM_init() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          FSM_State       FSM_currentState    Update current state
+ *          None
  *
  *  NOTE:
  */
-void FSM_running() {
-    // [1] Start moving forward
-    obstructed = false;
-    Powertrain_Module_moveForward();
-
-    // [2] Sleep until an obstacle is met or remotely controlled
-    while (!obstructed && !controlled) {
-        PCM_gotoLPM0InterruptSafe();
-    }
-
-    // [3] Update current state
-    FSM_currentState = controlled ? STATE_REMOTE : STATE_SENSING;
-}
+void FSM_running() {}
 
 /*F************************************************************************************************
  * NAME: void FSM_sensing()
  *
  * DESCRIPTION:
  *      Handle the STATE_SENSING state:
- *      [1] Start sensing the surroundings
- *      [2] Sleep until the sensing procedure has been completed or remotely controlled
- *      [3] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
@@ -161,31 +140,17 @@ void FSM_running() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          FSM_State       FSM_currentState    Update current state
+ *          None
  *
  *  NOTE:
  */
-void FSM_sensing() {
-    // [1] Start sensing the surroundings
-    Sensing_Module_checkLateralClearance();
-    sensing = true;
-
-    // [2] Sleep until the sensing procedure has been completed or remotely controlled
-    while (sensing && !controlled) {
-        PCM_gotoLPM0InterruptSafe();
-    }
-
-    // [3] Update current state
-    FSM_currentState = controlled ? STATE_REMOTE : STATE_TURNING;
-}
+void FSM_sensing() {}
 
 /*F************************************************************************************************
  * NAME: void FSM_turning()
  *
  * DESCRIPTION:
  *      Handle the STATE_TURNING state:
- *      [1] Sleep until the robot has turned or remotely controlled
- *      [2] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
@@ -197,30 +162,17 @@ void FSM_sensing() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          FSM_State       FSM_currentState    Update current state
+ *          None
  *
  *  NOTE:
  */
-void FSM_turning() {
-    turned = false;
-
-    // [2] Sleep until the robot has turned or remotely controlled
-    while (!turned && !controlled) {
-        PCM_gotoLPM0InterruptSafe();
-    }
-
-    // [3] Update current state
-    FSM_currentState = controlled ? STATE_REMOTE : STATE_RUNNING;
-}
+void FSM_turning() {}
 
 /*F************************************************************************************************
  * NAME: void FSM_remote()
  *
  * DESCRIPTION:
  *      Handle the STATE_REMOTE state:
- *      [1] Enable sleep on interrupt service routine exit
- *      [2] Sleep until the robot mode is toggled to autonomous drive
- *      [3] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
@@ -232,31 +184,25 @@ void FSM_turning() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          FSM_State       FSM_currentState    Update current state
+ *          None
  *
  *  NOTE:
  */
-void FSM_remote() {
-    // [1] Enable sleep on interrupt service routine exit
-    Interrupt_enableSleepOnIsrExit();
-
-    // [2] Sleep until the robot mode is toggled to autonomous drive
-    PCM_gotoLPM0InterruptSafe();
-
-    // [3] Update current state
-    FSM_currentState = controlled ? STATE_REMOTE : STATE_RUNNING;
-}
+void FSM_remote() {}
 
 /*F************************************************************************************************
  * NAME: void obstacleCallback(bool free)
  *
  * DESCRIPTION:
  *      Callback to call when an obstacle is met:
- *      [1] If the state is STATE_RUNNING set obstacle variable
+ *      [1] If the path is not clear stop
+ *      [2] Start sensing the surroundings
+ *      [3] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
- *          bool    free    true if the path ahead is free, false otherwise
+ *          bool        free                Indicate whether the path is clear
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *      GLOBALS:
  *          None
  *
@@ -264,14 +210,19 @@ void FSM_remote() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool      obstructed    Indicate whether the path is obstructed
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *
  *  NOTE:
  */
 void obstacleCallback(bool free) {
-    // [1] If the state is STATE_RUNNING set obstacle variable
-    if (FSM_currentState == STATE_RUNNING) {
-        obstructed = !free;
+    // [1] If the path is not clear stop
+    if (FSM_currentState == STATE_RUNNING && !free) {
+        // [2] Start sensing the surroundings
+        Powertrain_Module_stop();
+        Sensing_Module_checkLateralClearance();
+
+        // [3] Update current state
+        FSM_currentState == STATE_SENSING;
     }
 }
 
@@ -280,11 +231,11 @@ void obstacleCallback(bool free) {
  *
  * DESCRIPTION:
  *      Callback to call when the robot has turned:
- *      [1] If the state is STATE_TURNING set turned variable
+ *      [2] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
- *          None
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *      GLOBALS:
  *          None
  *
@@ -292,14 +243,15 @@ void obstacleCallback(bool free) {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool      turned    Indicate whether a turn has been completed
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *
  *  NOTE:
  */
 void turnedCallback() {
-    // [1] If the state is STATE_TURNING set turned variable
+    // [2] Update current state
     if (FSM_currentState == STATE_TURNING) {
-        turned = true;
+        Powertrain_Module_moveForward();
+        FSM_currentState = STATE_RUNNING;
     }
 }
 
@@ -308,13 +260,14 @@ void turnedCallback() {
  *
  * DESCRIPTION:
  *      Callback to call when the sensing procedure has finished:
- *      [1] If the state is STATE_SENSING set sensing variable
- *      [2] Turn around based on the directions not obstructed
+ *      [1] Turn around based on the directions not obstructed
+ *      [2] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
  *          bool    free_left       Indicate whethere the left side is not obstructed
  *          bool    free_right      Indicate whethere the right side is not obstructed
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *      GLOBALS:
  *          None
  *
@@ -322,23 +275,23 @@ void turnedCallback() {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool    sensing     Indicate whether the sensing procedure has been completed.
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *
  *  NOTE:
  */
 void sensingCallback(bool free_left, bool free_right) {
-    // [1] If the state is STATE_SENSING set sensing variable
+    // [1] Turn around based on the directions not obstructed
     if (FSM_currentState == STATE_SENSING) {
-        sensing = false;
-    }
+        if (free_left) {
+            Powertrain_Module_turnLeft(90);
+        } else if (free_right) {
+            Powertrain_Module_turnRight(90);
+        } else {
+            Powertrain_Module_turnRight(180);
+        }
 
-    // [2] Turn around based on the directions not obstructed
-    if (free_left) {
-        Powertrain_Module_turnLeft(90);
-    } else if (free_right) {
-        Powertrain_Module_turnRight(90);
-    } else {
-        Powertrain_Module_turnRight(180);
+        // [2] Update current state
+        FSM_current_State = STATE_TURNING;
     }
 }
 
@@ -347,12 +300,12 @@ void sensingCallback(bool free_left, bool free_right) {
  *
  * DESCRIPTION:
  *      Callback to call when the drive mode changes (remotely controlled or autonomous drive):
- *      [1] Update the controlled variable
- *      [2] Disable sleep on interrupt service routine exit
+ *      [1] Switch to the correct state based on the current state
+ *      [2] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
- *          None
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *      GLOBALS:
  *          None
  *
@@ -360,37 +313,56 @@ void sensingCallback(bool free_left, bool free_right) {
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          bool      controlled    Indicate whether the robot is being remotely controlled
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *
  *  NOTE:
  */
 void switchModeCallback() {
-    // [1] Update the controlled variable
-    controlled != controlled;
-
-    // [2] Disable sleep on interrupt service routine exit
-    Interrupt_disableSleepOnIsrExit();
+    // [1] Switch to the correct state based on the current state
+    switch (FSM_currentState) {
+    // [2] Update current state
+    case STATE_REMOTE:
+        Powertrain_Module_moveForward();
+        FSM_currentState = STATE_RUNNING;
+        break;
+    case STATE_RUNNING:
+        FSM_currentState = STATE_REMOTE;
+        break;
+    case STATE_SENSING:
+        FSM_currentState = STATE_REMOTE;
+        break;
+    case STATE_TURNING:
+        FSM_currentState = STATE_REMOTE;
+        break;
+    default:
+        FSM_currentState = STATE_INIT;
+    }
 }
 
-/*ISR**********************************************************************************************
- * NAME: void T32_INT2_IRQHandler()
+/*F************************************************************************************************
+ * NAME: void timerCallback()
  *
  * DESCRIPTION:
- *      This function is called every time that the TIMER32_1 counter reaches zero, this means
- *      that a new sensing procedure for detecting frontal obstacles has to be started.
+ *      Callback called periodically by the Timer32 to check for obstacles
+ *      [1] Check for frontal obstacles
  *
  * INPUTS:
+ *      PARAMETERS:
+ *          FSM_State   FSM_currentState    Current state of the FSM
  *      GLOBALS:
  *          None
  *
  *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
  *      GLOBALS:
  *          None
  *
  *  NOTE:
  */
-// cppcheck-suppress unusedFunction
-void T32_INT2_IRQHandler() {
-    Timer32_clearInterruptFlag(TIMER32_1_BASE);
-    Sensing_Module_checkFrontClearance();
+void timerCallback() {
+    // [1] Check for frontal obstacles
+    if (FSM_currentState == STATE_RUNNING) {
+        Sensing_Module_checkFrontClearance();
+    }
 }
