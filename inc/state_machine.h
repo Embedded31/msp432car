@@ -71,13 +71,7 @@ void FSM_turning();     // Handle the STATE_TURNING state
 void FSM_remote();      // Handle the STATE_REMOTE state
 
 // Global variables definition
-FSM_State FSM_currentState = STATE_INIT;    // Current FSM state
-FSM_StateMachine FSM_stateMachine[] = {     // FSM initialization
-    {STATE_INIT, FSM_init},
-    {STATE_RUNNING, FSM_running},
-    {STATE_SENSING, FSM_sensing},
-    {STATE_TURNING, FSM_turning},
-    {STATE_REMOTE, FSM_remote}
-};
+extern FSM_State FSM_currentState;    // Current FSM state
+extern FSM_StateMachine FSM_stateMachine[];
 
 #endif /* STATE_MACHINE_H_ */

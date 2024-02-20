@@ -29,14 +29,13 @@
 
 #include "../../inc/state_machine.h"
 #include "../../inc/driverlib/driverlib.h"
-
 #include "../../inc/powertrain_module.h"
 #include "../../inc/sensing_module.h"
 #include "../../inc/remote_module.h"
 
 #define SENSING_TIMER_COUNT 46875       // 24MHz / 256 / 46875 = 2Hz = 0.5s
 
-void obstacleCallback();
+void obstacleCallback(bool free);
 void turnedCallback();
 void sensingCallback(bool free_left, bool free_right);
 void switchModeCallback();
@@ -51,7 +50,8 @@ FSM_StateMachine FSM_stateMachine[] = {     // FSM initialization
         {STATE_INIT, FSM_init},
         {STATE_RUNNING, FSM_running},
         {STATE_SENSING, FSM_sensing},
-        {STATE_REMOTE, FSM_remote}
+        {STATE_TURNING, FSM_turning},
+        {STATE_REMOTE, FSM_remote},
 };
 
 /*F************************************************************************************************
@@ -86,7 +86,7 @@ void FSM_init() {
     Remote_Module_registerModeChangeRequestCallback(switchModeCallback);
     Sensing_Module_registerSingleMeasurementReadyCallback(obstacleCallback);
     Sensing_Module_registerDoubleMeasurementReadyCallback(sensingCallback);
-    Povertrain_Module_registerTurnCompletedCallback(turnedCallback);
+    Powertrain_Module_registerTurnCompletedCallback(turnedCallback);
 
     // [2] Disable sleep on interrupt service routine exit
     Interrupt_disableSleepOnIsrExit();
@@ -250,7 +250,7 @@ void FSM_remote() {
 }
 
 /*F************************************************************************************************
- * NAME: void obstacleCallback()
+ * NAME: void obstacleCallback(bool free)
  *
  * DESCRIPTION:
  *      Callback to call when an obstacle is met:
@@ -258,7 +258,7 @@ void FSM_remote() {
  *
  * INPUTS:
  *      PARAMETERS:
- *          None
+ *          bool    free    true if the path ahead is free, false otherwise
  *      GLOBALS:
  *          None
  *
@@ -270,10 +270,10 @@ void FSM_remote() {
  *
  *  NOTE:
  */
-void obstacleCallback() {
+void obstacleCallback(bool free) {
     // [1] If the state is STATE_RUNNING set obstacle variable
     if (FSM_currentState == STATE_RUNNING) {
-        obstructed = true;
+        obstructed = !free;
     }
 }
 
