@@ -14,7 +14,7 @@
  *      void    Powertrain_Module_decreaseSpeed()
  *      void    Powertrain_Module_turnLeft(uint8_t angle)
  *      void    Powertrain_Module_turnRight(uint8_t angle)
- *      void    Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback)
+ *      void    Powertrain_Module_registerTurnCompletedCallback(PowertrainCallback callback)
  *
  * NOTES:
  *
@@ -418,7 +418,7 @@ uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance)
 }
 
 /*F************************************************************************************************
- * NAME: void Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback);
+ * NAME: void Powertrain_Module_registerTurnCompletedCallback(PowertrainCallback callback);
  *
  * DESCRIPTION:
  *      Registers the PowertrainCallback as the function to call when the robot reaches the
@@ -438,7 +438,7 @@ uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance)
  *
  *  NOTE:
  */
-void Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback) {
+void Powertrain_Module_registerTurnCompletedCallback(PowertrainCallback callback) {
     powertrainCallback = callback;
 }
 

@@ -14,7 +14,7 @@
  *      void    Powertrain_Module_decreaseSpeed()
  *      void    Powertrain_Module_turnLeft(int8_t angle)
  *      void    Powertrain_Module_turnRight(int8_t angle)
- *      void    Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback)
+ *      void    Powertrain_Module_registerTurnCompletedCallback(PowertrainCallback callback)
  *
  * NOTES:
  *
@@ -224,7 +224,7 @@ void Powertrain_Module_turnLeft(uint8_t angle);
 void Powertrain_Module_turnRight(uint8_t angle);
 
 /*F************************************************************************************************
- * NAME: void Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback);
+ * NAME: void Powertrain_Module_registerTurnCompletedCallback(PowertrainCallback callback);
  *
  * DESCRIPTION:
  *      Registers the PowertrainCallback as the function to call when the robot reaches the
@@ -244,6 +244,6 @@ void Powertrain_Module_turnRight(uint8_t angle);
  *
  *  NOTE:
  */
-void Powertrain_Module_registerActionEndedCallback(PowertrainCallback callback);
+void Powertrain_Module_registerTurnCompletedCallback(PowertrainCallback callback);
 
 #endif /* POWERTRAIN_MODULE_H_ */
