@@ -22,6 +22,7 @@
  *
  * CHANGES:
  * 19 Feb 2024  Simone Rossi    Updating and refactoring
+ * 20 Feb 2024  Simone Rossi    Added periodic sensing of frontal obstacles
  */
 #include <stdbool.h>
 
@@ -32,6 +33,8 @@
 #include "../../inc/sensing_module.h"
 #include "../../inc/remote_module.h"
 #include "../../inc/servo_hal.h"
+
+#define SENSING_TIMER_COUNT 48000000      // 24Mhz / 48000000 = 0.5s
 
 void obstacleCallback();
 void rotateCallback();
@@ -49,7 +52,9 @@ volatile bool turned = false;       // Indicate whether a turn has been complete
  *      Initializes the FSM:
  *      [1] Register the required callbacks
  *      [2] Disable sleep on interrupt service routine exit
- *      [3] Update current state
+ *      [3] Initialize timer32 module used for periodically probing for obstacles
+ *      [4] Enable timer interrupts
+ *      [5] Update current state
  *
  * INPUTS:
  *      PARAMETERS:
@@ -66,16 +71,31 @@ volatile bool turned = false;       // Indicate whether a turn has been complete
  *  NOTE:
  */
 void FSM_init() {
+    Interrupt_disableMaster();
+
     // [1] Register the required callbacks
     Remote_Module_registerModeChangeRequestCallback(switchModeCallback);
+    Sensing_Module_registerSingleMeasurementReadyCallback(obstacleCallback);
+    Sensing_Module_registerDoubleMeasurementReadyCallback(rotateCallback);
     SERVO_HAL_registerPositionReachedCallback(rotateCallback);
-    // TODO: Register sensing callbacks (obstacle and sensing)
 
     // [2] Disable sleep on interrupt service routine exit
     Interrupt_disableSleepOnIsrExit();
 
-    // [3] Update current state
+    // [3] Initialize timer32 module used for periodically probing for obstacles
+    Timer32_initModule(TIMER32_1_BASE, TIMER32_PRESCALER_1, TIMER32_32BIT, TIMER32_PERIODIC_MODE);
+    Timer32_setCount(TIMER32_1_BASE, SENSING_TIMER_COUNT);
+    Timer32_startTimer(TIMER32_1_BASE, true);
+
+    // [4] Enable timer interrupts
+    Timer32_clearInterruptFlag(TIMER32_1_BASE);
+    Timer32_enableInterrupt(TIMER32_1_INTERRUPT);
+    Interrupt_enableInterrupt(INT_T32_INT2);
+
+    // [5] Update current state
     FSM_currentState = controlled ? STATE_REMOTE : STATE_RUNNING;
+
+    Interrupt_enableMaster();
 }
 
 /*F************************************************************************************************
@@ -141,7 +161,7 @@ void FSM_running() {
 void FSM_sensing() {
     // [1] Start sensing the surroundings
     turned = false;
-    // TODO: Sensing_Module_checkSideClearance();
+    Sensing_Module_checkLateralClearance();
 
     // [2] Sleep until the robot has turned or remotely controlled
     while (!turned && !controlled) {
@@ -303,4 +323,27 @@ void switchModeCallback() {
 
     // [2] Disable sleep on interrupt service routine exit
     Interrupt_disableSleepOnIsrExit();
+}
+
+/*ISR**********************************************************************************************
+ * NAME: void T32_INT2_IRQHandler()
+ *
+ * DESCRIPTION:
+ *      This function is called every time that the TIMER32_1 counter reaches zero, this means
+ *      that a new sensing procedure for detecting frontal obstacles has to be started.
+ *
+ * INPUTS:
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+// cppcheck-suppress unusedFunction
+void T32_INT2_IRQHandler() {
+    Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    Sensing_Module_checkFrontClearance();
 }
