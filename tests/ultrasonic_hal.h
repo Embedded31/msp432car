@@ -106,4 +106,6 @@ void US_HAL_triggerMeasurement(uint16_t distance);
  */
 void US_HAL_registerMeasurementCallback(USCallback callback);
 
+void US_HAL_setDefaultDistance(uint16_t distance){defaultDistance = distance;}
+
 #endif // ULTRASONIC_HAL_H

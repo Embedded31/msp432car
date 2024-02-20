@@ -9,6 +9,7 @@
  *      void        US_HAL_init()
  *      void        US_HAL_triggerMeasurement()
  *      void        US_HAL_registerMeasurementCallback(USCallback callback);
+ *      void        US_HAL_setDefaultDistance(uint16_t distance);
  *
  * NOTES:
  *
@@ -20,8 +21,9 @@
  * DATE         AUTHOR          DETAIL
  */
 #include <stdio.h>
-
 #include "ultrasonic_hal.h"
+
+static uint16_t defaultDistance;
 
 USCallback usCallback;       /* Function to call when a new measurement is ready      */
 
@@ -29,9 +31,11 @@ void US_HAL_init() {
     usCallback = NULL;
 }
 
-void US_HAL_triggerMeasurement(uint16_t distance) {
+void US_HAL_triggerMeasurement() {
     if (usCallback != NULL)
-        usCallback(distance);
+        usCallback(defaultDistance);
 }
 
 void US_HAL_registerMeasurementCallback(USCallback callback) { usCallback = callback; }
+
+void US_HAL_setDefaultDistance(uint16_t distance){defaultDistance = distance;}
