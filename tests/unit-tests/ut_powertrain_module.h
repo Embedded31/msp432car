@@ -2,7 +2,7 @@
  * FILENAME:        ut_powertrain_module.h
  *
  * DESCRIPTION:
- *      This header provide the test functions to verify the correct behavior of the
+ *      This header file provides the test functions to verify the correct behavior of the
  *      powertrain module.
  *
  * PUBLIC FUNCTIONS:
