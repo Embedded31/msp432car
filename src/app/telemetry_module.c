@@ -476,3 +476,36 @@ void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t obje
 
     Telemetry_Module_SendMsgObjectDetected(&objectDetected);
 }
+
+
+/*F************************************************************************************************
+ * NAME: Telemetry_Module_NotifyModeSwitch(bool controlled)
+ *
+ * DESCRIPTION:
+ *      This functions notifies that the robot switched from manual remote controlled mode
+ *      to automatic driving mode, or viceversa. Remote controlled mode is called manual
+ *      and automatic driving mode is called auto
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          bool    controlled     Whether the robot is being remotely controlled
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *      RETURN:
+ *          None
+ *
+ *  NOTE:
+ */
+void Telemetry_Module_NotifyModeSwitch(bool controlled) {
+
+    sprintf(buffer, "mode:%s", controlled ? "manual" : "auto");
+
+    Telemetry_Module_Notify(MSG_MODE_SWITCH, MSG_HIGH_SEVERITY,
+                            buffer);
+}

@@ -19,6 +19,7 @@
  * CHANGES:
  *      DATE            AUTHOR              DETAIL
  *      20 Feb 2024     Matteo Frizzera     Add different callback functions for left and right motor
+ *      20 Feb 2024     Matteo Frizzera     Add function to notify mode switch
  */
 
 #include <stdint.h>
@@ -52,15 +53,18 @@ typedef enum { MSG_LOW_SEVERITY, MSG_MEDIUM_SEVERITY, MSG_HIGH_SEVERITY } Messag
  * SPECIFICATIONS:
  *      Type:   enum
  *      Values: MSG_OBJECT_DETECTED                 detected an object in the path of the msp432car
- *              MSG_BATTERY_STATUS_UPDATE           updates battery status, for example when battery
- * is decreasing MSG_SPEED_UPDATE                    speed of motor has changed MSG_MOTOR_DIR_UPDATE
- * direction of motor has changed
+ *              MSG_BATTERY_STATUS_UPDATE           updates battery status
+ *              MSG_SPEED_UPDATE                    speed of motor has changed
+ *              MSG_MOTOR_DIR_UPDATE                direction of motor has changed
+ *              MSG_MODE_SWITCH                     control mode becomes manual or auto
+ * 
  */
 typedef enum {
     MSG_OBJECT_DETECTED,
     MSG_BATTERY_STATUS_UPDATE,
     MSG_MOTOR_SPEED_UPDATE,
-    MSG_MOTOR_DIR_UPDATE
+    MSG_MOTOR_DIR_UPDATE,
+    MSG_MODE_SWITCH
 } MessageType;
 
 /*S************************************************************************************************
@@ -450,5 +454,30 @@ void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetect
  *      detected an object close enough
  */
 void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance);
+
+/*F************************************************************************************************
+ * NAME: Telemetry_Module_NotifyModeSwitch(bool controlled)
+ *
+ * DESCRIPTION:
+ *      This functions send a bluetooth message with information about the driving mode the robot
+ *      is currently in
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          bool    controlled     Whether the robot is being remotely controlled
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *      RETURN:
+ *          None
+ *
+ *  NOTE:
+ */
+void Telemetry_Module_NotifyModeSwitch(bool controlled);
 
 #endif // TELEMETRY_MODULE_H
