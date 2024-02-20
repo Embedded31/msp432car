@@ -31,6 +31,7 @@
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/powertrain_module.h"
 #include "../../inc/timer_hal.h"
+#include "../../inc/bluetooth_hal.h"
 
 #ifdef TEST
 #include "../../tests/motor_hal.h"
@@ -42,9 +43,8 @@
 #define POWERTRAIN_FWD_SPEED 40     /* Default speed for forward movements                  */
 #define POWERTRAIN_REV_SPEED 20     /* Default speed for backward movements                 */
 #define POWERTRAIN_TURN_SPEED 50    /* Default speed for turns                              */
-#define WHEEL_DIAMETER 5            /* Wheel diameter in centimeters                        */
-#define WHEEL_MAX_ROTATION_SPEED 60 /* Wheel maximum rotation speed in rotations per minute */
-#define WHEEL_MAX_ANGULAR_SPEED 45  /* Wheel maximum angular speed in degrees per second    */
+#define WHEEL_DIAMETER 6.5          /* Wheel diameter in centimeters                        */
+#define WHEEL_MAX_ANGULAR_SPEED 36  /* Wheel maximum angular speed in degrees per second    */
 
 /*T************************************************************************************************
  * NAME: Powertrain
@@ -415,35 +415,8 @@ void wait_milliseconds(uint32_t time) {
  *  NOTE:
  */
 uint32_t calculate_time_from_angle(uint8_t speedPercentage, uint8_t angle) {
-    float speed = WHEEL_MAX_ANGULAR_SPEED * (speedPercentage / 100);
-    uint32_t time = angle * 1000 / speed;
-    return time;
-}
-
-/*F************************************************************************************************
- * NAME: void calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance);
- *
- * DESCRIPTION:
- *      Calculate the time required to travel the specified distance.
- *
- * INPUTS:
- *      PARAMETERS:
- *          uint8_t     speed          Motor speed in percentage
- *          uint8_t     distance       Specifies the distance to travel in centimeters
- *      GLOBALS:
- *          None
- *
- *  OUTPUTS:
- *      PARAMETERS:
- *          None
- *      GLOBALS:
- *          None
- *
- *  NOTE:
- */
-uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance) {
-    float speed = PI * WHEEL_DIAMETER * WHEEL_MAX_ROTATION_SPEED * (speedPercentage / 100);
-    uint32_t time = distance * 1000 / speed;
+    float speed = WHEEL_MAX_ANGULAR_SPEED * (speedPercentage * 1.0 / 100);
+    uint32_t time = angle * 10000 / speed;
     return time;
 }
 
