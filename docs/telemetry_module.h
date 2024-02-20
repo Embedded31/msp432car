@@ -23,7 +23,8 @@
  */
 
 #include <stdint.h>
-#include "../motor_hal.h"
+
+#include "../inc/motor_hal.h"
 
 #ifndef TELEMETRY_MODULE_H
 #define TELEMETRY_MODULE_H

@@ -31,11 +31,11 @@
  *      none
  * 
  */
-#include "../../inc/telemetry_module.h"
-#include "../hal/bluetooth_hal.c"
-#include "../hal/battery_hal.c"
-#include "../hal/motor_hal.c"
-#include "powertrain_module.c"
+#include "telemetry_module.h"
+#include "../inc/bluetooth_hal.h"
+#include "../inc/battery_hal.h"
+#include "../inc/motor_hal.h"
+#include "../inc/powertrain_module.h"
 
 #define SEPARATOR ","   /*   the message will contain key - value pairs separated by commas      */
 
@@ -70,12 +70,12 @@ char buffer[MAX_MSG_LEN]; /* buffer to write msg content to before being sent ou
  */
 void Telemetry_Module_init(){
     // register speed change callback
-    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.left_motor, &Telemetry_Module_NotifyMotorSpeedChange);
-    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.right_motor, &Telemetry_Module_NotifyMotorSpeedChange);
+    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.left_motor, Telemetry_Module_NotifyMotorSpeedChange);
+    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.right_motor, Telemetry_Module_NotifyMotorSpeedChange);
 
     // register direction change callback
-    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.left_motor, &Telemetry_Module_NotifyMotorDirChange);
-    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.right_motor, &Telemetry_Module_NotifyMotorDirChange);
+    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.left_motor, Telemetry_Module_NotifyMotorDirChange);
+    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.right_motor, Telemetry_Module_NotifyMotorDirChange);
 
 }
 

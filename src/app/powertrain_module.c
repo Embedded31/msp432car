@@ -26,11 +26,11 @@
  * DATE         AUTHOR          DETAIL
  * 19 Feb 2024  Andrea Piccin   Refactoring, removed busy waiting mechanisms, add speed management
  */
-#include <stdbool.h>
 #include <stddef.h>
 
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/powertrain_module.h"
+#include "../../inc/system.h"
 
 #define PI 3.14159265358979323846   /* PI value                                             */
 #define POWERTRAIN_FWD_SPEED 40     /* Default speed for forward movements                  */
@@ -72,7 +72,6 @@ PowertrainCallback powertrainCallback = NULL; /* function to invoke on position 
  *      Initialises the motors.
  *      [1] Initialise motor hal system
  *      [2] Initialise the powertrain and its components
- *      [3] Initialise the timer used for the navigation by angle / by distance
  *
  * INPUTS:
  *      PARAMETERS:
@@ -97,12 +96,6 @@ void Powertrain_Module_init() {
     // [2] Initialize the powertrain and its components
     MOTOR_HAL_motorInit(&powertrain.left_motor, MOTOR_INIT_LEFT);
     MOTOR_HAL_motorInit(&powertrain.right_motor, MOTOR_INIT_RIGHT);
-
-    /* [3] Timer initialisation
-     * MCLK = 24MHz / 256 = 93750Hz => 0.01ms period */
-    Timer32_initModule(TIMER32_1_BASE, TIMER32_PRESCALER_256, TIMER32_32BIT, TIMER32_PERIODIC_MODE);
-    Timer32_enableInterrupt(TIMER32_1_BASE);
-    Interrupt_enableInterrupt(INT_T32_INT2);
 
     Interrupt_enableMaster();
 }
@@ -337,11 +330,43 @@ void Powertrain_Module_turnRight(uint8_t angle) {
 }
 
 /*F************************************************************************************************
+ * NAME: void Powertrain_Module_onTimerEnded()
+ *
+ * DESCRIPTION:
+ *      This function is registered as callback for the shared timer when acquired by the
+ *      powertrain module, when it is called the rotation is ended and the motors have to be
+ *      halted.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void Powertrain_Module_onTimerEnded() {
+    // [1] Set motors direction to stop
+    MOTOR_HAL_setDirection(&powertrain.left_motor, MOTOR_DIR_STOP);
+    MOTOR_HAL_setDirection(&powertrain.right_motor, MOTOR_DIR_STOP);
+
+    // [2] Clear interrupt flags
+    Timer32_clearInterruptFlag(TIMER32_1_BASE);
+    System_releaseSharedTimer();
+}
+
+/*F************************************************************************************************
  * NAME: void wait_milliseconds(uint32_t time);
  *
  * DESCRIPTION:
  *      Wait the specified amount of milliseconds.
- *      [1] start the timer
+ *      [1] acquire the shared timer
  *
  * INPUTS:
  *      PARAMETERS:
@@ -358,9 +383,8 @@ void Powertrain_Module_turnRight(uint8_t angle) {
  *  NOTE:
  */
 void wait_milliseconds(uint32_t time) {
-    // [1] Configure and start the timer
-    Timer32_setCount(TIMER32_1_BASE, time);
-    Timer32_startTimer(TIMER32_1_BASE, true);
+    // [1] Acquire the timer
+    System_acquireSharedTimer(time, Powertrain_Module_onTimerEnded);
 }
 
 /*F************************************************************************************************
@@ -440,35 +464,4 @@ uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance)
  */
 void Powertrain_Module_registerTurnCompletedCallback(PowertrainCallback callback) {
     powertrainCallback = callback;
-}
-
-/*ISR**********************************************************************************************
- * NAME: void T32_INT2_IRQHandler()
- *
- * DESCRIPTION:
- *      This function is called every time that an interrupt regarding the 32-bit timers occurs, in
- *      this function we're interested only in the TIMER32_0_BASE timer's interrupts.
- *      The handler is called when the timer reach the specified count value.
- *      [1] Set motors direction to stop
- *
- * INPUTS:
- *      GLOBALS:
- *          None
- *
- *  OUTPUTS:
- *      GLOBALS:
- *          None
- *
- *  NOTE:
- */
-// cppcheck-suppress unusedFunction
-void T32_INT2_IRQHandler() {
-    if (Timer32_getInterruptStatus(TIMER32_1_BASE)) {
-        // [1] Set motors direction to stop
-        MOTOR_HAL_setDirection(&powertrain.left_motor, MOTOR_DIR_STOP);
-        MOTOR_HAL_setDirection(&powertrain.right_motor, MOTOR_DIR_STOP);
-
-        // [2] Clear interrupt flags
-        Timer32_clearInterruptFlag(TIMER32_1_BASE);
-    }
 }

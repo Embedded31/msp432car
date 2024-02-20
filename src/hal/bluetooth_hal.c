@@ -275,8 +275,8 @@ void EUSCIA2_IRQHandler(void) {
         }
 
         // if buffer overflows send the partial string
-        if (currentRxIndex == BT_BUFFER_SIZE) {
-            incomingMessageBuffer[BT_BUFFER_SIZE - 1] = '\0';
+        if (currentRxIndex == BT_IN_BUFFER_SIZE) {
+            incomingMessageBuffer[BT_IN_BUFFER_SIZE - 1] = '\0';
             BT_HAL_forwardAndReset();
             return;
         }

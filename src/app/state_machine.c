@@ -46,6 +46,14 @@ volatile bool obstructed = false;   // Indicate whether the path is obstructed b
 volatile bool sensing = false;      // Indicate whether the sensing procedure has been completed
 volatile bool turned = false;       // Indicate whether a turn has been completed
 
+FSM_State FSM_currentState = STATE_INIT;    // Current FSM state
+FSM_StateMachine FSM_stateMachine[] = {     // FSM initialization
+        {STATE_INIT, FSM_init},
+        {STATE_RUNNING, FSM_running},
+        {STATE_SENSING, FSM_sensing},
+        {STATE_REMOTE, FSM_remote}
+};
+
 /*F************************************************************************************************
  * NAME: void FSM_init()
  *
@@ -125,7 +133,7 @@ void FSM_init() {
 void FSM_running() {
     // [1] Start moving forward
     obstructed = false;
-    POWERTRAIN_move_forward();
+    Powertrain_Module_moveForward();
 
     // [2] Sleep until an obstacle is met or remotely controlled
     while (!obstructed && !controlled) {

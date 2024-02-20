@@ -44,7 +44,7 @@
  */
 int main(void) {
     // [1] Initialize the system
-    system_init();
+    System_init();
 
     // [2] Start the finite state machine
     while(true) {

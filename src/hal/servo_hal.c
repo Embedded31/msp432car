@@ -24,11 +24,13 @@
  * 13 Feb 2024  Andrea Piccin       Refactoring
  * 15 Feb 2024  Matteo Frizzera     Added callback mechanism to notify servo reached final position
  * 15 Feb 2024  Andrea Piccin       Refactoring, functions using timer A0 now use TIMER32_0
+ * 20 Feb 2024  Andrea Piccin       Introduced shared 32-bit timer
  */
 #include <stdlib.h>
 
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/servo_hal.h"
+#include "../../inc/system.h"
 
 #define SERVO_PORT GPIO_PORT_P5    /* Port for the PWM signals                                */
 #define SERVO_PIN GPIO_PIN6        /* Pin for the PWM signals                                 */
@@ -45,6 +47,9 @@
 
 ServoCallback servoCallback; /* function to execute when the servo reaches its final position */
 
+/* utility function declaration */
+void SERVO_HAL_onTimerEnded();
+
 /*F************************************************************************************************
  * NAME: void SERVO_HAL_init(Servo* servo);
  *
@@ -55,9 +60,8 @@ ServoCallback servoCallback; /* function to execute when the servo reaches its f
  *      [2] Configure servo's pin
  *      [3] Configure the  base timer
  *      [4] Set up the Capture Compare Register (CCR) for the PWM signal generation
- *      [5] Init the timer32 module used for waiting for the servo to be in place
- *      [6] Wait for the servo to be at 0 deg position
- *      [7] Enable timer interrupts
+ *      [5] Wait for the servo to be at 0 deg position
+ *      [6] Enable timer interrupts
  *
  * INPUTS:
  *      PARAMETERS:
@@ -105,21 +109,11 @@ void SERVO_HAL_init(Servo *servo) {
     };
     Timer_A_initCompare(TIMER_A2_BASE, &compareConfig);
 
-    /* [5] Init timer32 module used for waiting for the servo to be in place
-     * timer clock: MCLK / 256 = 24MHz / 256 = 93750 Hz => 0.01ms period */
-    Timer32_initModule(TIMER32_0_BASE, TIMER32_PRESCALER_256, TIMER32_32BIT, TIMER32_PERIODIC_MODE);
-
-    // [6] Wait for the servo to be at 0 deg position
-    Timer32_setCount(TIMER32_0_BASE, SERVO_ADJ_180DEG_TICKS);
-    Timer32_startTimer(TIMER32_0_BASE, true);
+    // [5] Wait for the servo to be at 0 deg position
+    System_acquireSharedTimer(SERVO_ADJ_180DEG_TICKS, SERVO_HAL_onTimerEnded);
     while (Timer32_getValue(TIMER32_0_BASE) != 0)
         ;
     servo->state.position = 0;
-
-    // [7] Enable timer interrupts
-    Timer32_clearInterruptFlag(TIMER32_0_BASE);
-    Timer32_enableInterrupt(TIMER32_0_INTERRUPT);
-    Interrupt_enableInterrupt(INT_T32_INT1);
 
     Interrupt_enableMaster();
 }
@@ -203,8 +197,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
     } else {
         uint32_t ticks =
             (abs(position - servo->state.position) * 1.0 / 180) * SERVO_ADJ_180DEG_TICKS;
-        Timer32_setCount(TIMER32_0_BASE, ticks);
-        Timer32_startTimer(TIMER32_0_BASE, true);
+        System_acquireSharedTimer(ticks, SERVO_HAL_onTimerEnded);
         servo->state.position = position;
     }
 }
@@ -231,27 +224,29 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
  */
 void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback) { servoCallback = callback; }
 
-/*ISR**********************************************************************************************
- * NAME: void T32_INT1_IRQHandler()
+/*F************************************************************************************************
+ * NAME: SERVO_HAL_onTimerEnded()
  *
  * DESCRIPTION:
- *      This function is called every time that the TIMER32_0 counter reaches zero, this means
- *      that the servo has reached its final position.
- *      This procedure calls the registered callback (if existing).
+ *      Is the callback function for 32-bit shared timer.
  *
  * INPUTS:
+ *      PARAMETERS:
+ *          None
  *      GLOBALS:
  *          None
  *
  *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
  *      GLOBALS:
  *          None
  *
  *  NOTE:
  */
-// cppcheck-suppress unusedFunction
-void T32_INT1_IRQHandler() {
+void SERVO_HAL_onTimerEnded() {
     Timer32_clearInterruptFlag(TIMER32_0_BASE);
     if (servoCallback != NULL)
         servoCallback();
+    System_releaseSharedTimer();
 }
