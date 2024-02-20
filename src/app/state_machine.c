@@ -28,7 +28,6 @@
 
 #include "../../inc/state_machine.h"
 #include "../../inc/driverlib/driverlib.h"
-
 #include "../../inc/powertrain_module.h"
 #include "../../inc/sensing_module.h"
 #include "../../inc/remote_module.h"

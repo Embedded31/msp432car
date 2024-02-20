@@ -42,7 +42,7 @@
  *
  *  NOTE:
  */
-void main(void) {
+int main(void) {
     // [1] Initialize the system
     system_init();
 
