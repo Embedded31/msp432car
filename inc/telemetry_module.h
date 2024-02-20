@@ -9,7 +9,6 @@
  *      battery status, object detection, etc.
  *
  * PUBLIC FUNCTIONS:
- *      TODO:
  *
  * NOTES:
  *
@@ -18,6 +17,8 @@
  * START DATE: 12 Feb 2024
  *
  * CHANGES:
+ *      DATE            AUTHOR              DETAIL
+ *      20 Feb 2024     Matteo Frizzera     Add different callback functions for left and right motor
  */
 
 #include <stdint.h>
@@ -273,7 +274,7 @@ void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpd
  * NAME: void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed)
  *
  * DESCRIPTION:
- *      This functions send a bluetooth message about a motor speed change
+ *      This functions send a bluetooth message about a left motor speed change
  *
  *
  * INPUTS:
@@ -293,7 +294,34 @@ void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpd
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed);
+void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed);
+
+
+/*F************************************************************************************************
+ * NAME: void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed)
+ *
+ * DESCRIPTION:
+ *      This functions send a bluetooth message about a right motor speed change
+ *
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor       *motor      the motor in wich the speed change has occurred
+ *          uint8_t      speed      new speed of the motor
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *      RETURN:
+ *          None
+ *
+ *  NOTE:
+ */
+void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed);
 
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate)
@@ -324,7 +352,7 @@ void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpd
  * NAME: void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction)
  *
  * DESCRIPTION:
- *      This functions send a bluetooth message about a motor direction change
+ *      This functions send a bluetooth message about a left motor direction change
  *
  * INPUTS:
  *      PARAMETERS:
@@ -343,7 +371,33 @@ void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpd
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction);
+void Telemetry_Module_NotifyLeftMotorDirChange(Motor *motor, MotorDirection direction);
+
+
+/*F************************************************************************************************
+ * NAME: void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction)
+ *
+ * DESCRIPTION:
+ *      This functions send a bluetooth message about a right motor direction change
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *           Motor              *motor          the motor in wich the direction change has occurred
+ *          MotorDirection      direction      new direction of the motor
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *      RETURN:
+ *          None
+ *
+ *  NOTE:
+ */
+void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection direction);
 
 /*F************************************************************************************************
  * NAME: Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetected)

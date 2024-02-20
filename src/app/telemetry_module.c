@@ -13,9 +13,11 @@
  *      void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryUpdate)
  *      void Telemetry_Module_NotifyBatteryStatus()
  *      void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpdate)
- *      void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed)
+ *      void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed)
+ *      void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed)
  *      void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate)
- *      void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction)
+ *      void Telemetry_Module_NotifyLeftMotorDirChange(Motor *motor, MotorDirection direction)
+ *      void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection direction)
  *      void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetected)
  *      void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance)
 
@@ -78,15 +80,15 @@ char buffer[MAX_MSG_LEN]; /* buffer to write msg content to before being sent ou
 void Telemetry_Module_init() {
     // register speed change callback
     MOTOR_HAL_registerSpeedChangeCallback(&powertrain.left_motor,
-                                          Telemetry_Module_NotifyMotorSpeedChange);
+                                          Telemetry_Module_NotifyLeftMotorSpeedChange);
     MOTOR_HAL_registerSpeedChangeCallback(&powertrain.right_motor,
-                                          Telemetry_Module_NotifyMotorSpeedChange);
+                                          Telemetry_Module_NotifyRightMotorSpeedChange);
 
     // register direction change callback
     MOTOR_HAL_registerDirectionChangeCallback(&powertrain.left_motor,
-                                              Telemetry_Module_NotifyMotorDirChange);
+                                              Telemetry_Module_NotifyLeftMotorDirChange);
     MOTOR_HAL_registerDirectionChangeCallback(&powertrain.right_motor,
-                                              Telemetry_Module_NotifyMotorDirChange);
+                                              Telemetry_Module_NotifyRightMotorDirChange);
 }
 
 /*F************************************************************************************************
@@ -244,17 +246,16 @@ void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpd
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed)
+ * NAME: void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed)
  *
  * DESCRIPTION:
  *      This functions creates and fills a message motor speed struct with information about the
- *      motor speed changes, then calls a function to send
- *      the message
+ *      left motor speed changes, then calls the sendMsg function to send the message
  *
  *
  * INPUTS:
  *      PARAMETERS:
- *          Motor       *motor      the motor in wich the speed change has occurred
+ *          Motor       *motor      the left motor in wich the speed change has occurred
  *          uint8_t      speed      new speed of the motor
  *      GLOBALS:
  *          None
@@ -264,12 +265,43 @@ void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpd
  *          None
  *      GLOBALS:
  *          None
- *      RETURN:
+ *
+ *  NOTE:
+ */
+void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed) {
+    Message_MotorSpeedUpdate motorSpeedUpdate;
+
+    motorSpeedUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
+    motorSpeedUpdate.messageInfo.type = MSG_MOTOR_SPEED_UPDATE;
+    motorSpeedUpdate.speed = speed;
+
+    Telemetry_Module_SendMsgMotorSpeedChange(&motorSpeedUpdate);
+}
+
+/*F************************************************************************************************
+ * NAME: void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed)
+ *
+ * DESCRIPTION:
+ *      This functions creates and fills a message motor speed struct with information about the
+ *      right motor speed changes, then calls the sendMsg function to send the message
+ *
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor       *motor      the right motor in wich the speed change has occurred
+ *          uint8_t      speed      new speed of the motor
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
  *          None
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed) {
+void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed) {
     Message_MotorSpeedUpdate motorSpeedUpdate;
 
     motorSpeedUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
@@ -310,15 +342,49 @@ void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpd
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction)
+ * NAME: void Telemetry_Module_NotifyLeftMotorDirChange(Motor *motor, MotorDirection direction)
  *
  * DESCRIPTION:
  *      This functions creates and fills a message motor direction struct with information about
- *      the motor speed changes, then calls a function to actually send the message
+ *      the left motor direction changes, then calls a function to actually send the message
  *
  * INPUTS:
  *      PARAMETERS:
- *           Motor              *motor          the motor in wich the direction change has occurred
+ *          Motor               *motor          left motor in wich the dir change has occurred
+ *          MotorDirection       direction      new direction of the motor
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          None
+ *      GLOBALS:
+ *          None
+ *      RETURN:
+ *          None
+ *
+ *  NOTE:
+ */
+void Telemetry_Module_NotifyLeftMotorDirChange(Motor *motor, MotorDirection direction) {
+    Message_MotorDirectionUpdate motorDirUpdate;
+
+    motorDirUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
+    motorDirUpdate.messageInfo.type = MSG_MOTOR_DIR_UPDATE;
+    motorDirUpdate.direction = direction;
+
+    Telemetry_Module_SendMsgMotorDirChange(&motorDirUpdate);
+}
+
+/*F************************************************************************************************
+ * NAME: void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection direction)
+ *
+ * DESCRIPTION:
+ *      This functions creates and fills a message motor direction struct with information about
+ *      the right motor direction changes, then calls a function to actually send the message
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Motor              *motor          right motor in wich the dir change has occurred
  *          MotorDirection      direction      new direction of the motor
  *      GLOBALS:
  *          None
@@ -333,7 +399,7 @@ void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpd
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction) {
+void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection direction) {
     Message_MotorDirectionUpdate motorDirUpdate;
 
     motorDirUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
