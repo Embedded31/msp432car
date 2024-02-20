@@ -30,7 +30,7 @@
 
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/servo_hal.h"
-#include "../../inc/system.h"
+#include "../../inc/timer_hal.h"
 
 #define SERVO_PORT GPIO_PORT_P5    /* Port for the PWM signals                                */
 #define SERVO_PIN GPIO_PIN6        /* Pin for the PWM signals                                 */
@@ -110,7 +110,7 @@ void SERVO_HAL_init(Servo *servo) {
     Timer_A_initCompare(TIMER_A2_BASE, &compareConfig);
 
     // [5] Wait for the servo to be at 0 deg position
-    System_acquireSharedTimer(SERVO_ADJ_180DEG_TICKS, SERVO_HAL_onTimerEnded);
+    TIMER_HAL_acquireSharedTimer(SERVO_ADJ_180DEG_TICKS, SERVO_HAL_onTimerEnded);
     while (Timer32_getValue(TIMER32_0_BASE) != 0)
         ;
     servo->state.position = 0;
@@ -197,7 +197,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
     } else {
         uint32_t ticks =
             (abs(position - servo->state.position) * 1.0 / 180) * SERVO_ADJ_180DEG_TICKS;
-        System_acquireSharedTimer(ticks, SERVO_HAL_onTimerEnded);
+        TIMER_HAL_acquireSharedTimer(ticks, SERVO_HAL_onTimerEnded);
         servo->state.position = position;
     }
 }
@@ -248,5 +248,5 @@ void SERVO_HAL_onTimerEnded() {
     Timer32_clearInterruptFlag(TIMER32_0_BASE);
     if (servoCallback != NULL)
         servoCallback();
-    System_releaseSharedTimer();
+    TIMER_HAL_releaseSharedTimer();
 }

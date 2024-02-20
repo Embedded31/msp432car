@@ -30,7 +30,7 @@
 
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/powertrain_module.h"
-#include "../../inc/system.h"
+#include "../../inc/timer_hal.h"
 
 #ifdef TEST
 #include "../../tests/motor_hal.h"
@@ -363,8 +363,8 @@ void Powertrain_Module_onTimerEnded() {
     MOTOR_HAL_setDirection(&powertrain.right_motor, MOTOR_DIR_STOP);
 
     // [2] Clear interrupt flags
-    Timer32_clearInterruptFlag(TIMER32_1_BASE);
-    System_releaseSharedTimer();
+    Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    TIMER_HAL_releaseSharedTimer();
 }
 
 /*F************************************************************************************************
@@ -376,7 +376,7 @@ void Powertrain_Module_onTimerEnded() {
  *
  * INPUTS:
  *      PARAMETERS:
- *          uint32_t        time       Specifies the ticks (@93750Hz) to wait
+ *          uint32_t        time       Specifies the ticks (1 tick = 0.01ms) to wait
  *      GLOBALS:
  *          None
  *
@@ -390,7 +390,7 @@ void Powertrain_Module_onTimerEnded() {
  */
 void wait_milliseconds(uint32_t time) {
     // [1] Acquire the timer
-    System_acquireSharedTimer(time, Powertrain_Module_onTimerEnded);
+    TIMER_HAL_acquireSharedTimer(time, Powertrain_Module_onTimerEnded);
 }
 
 /*F************************************************************************************************
