@@ -31,11 +31,11 @@
  *      none
  * 
  */
-#include "telemetry_module.h"
-#include "../inc/bluetooth_hal.h"
-#include "../inc/battery_hal.h"
-#include "../inc/motor_hal.h"
-#include "../inc/powertrain_module.h"
+#include "../../inc/telemetry_module.h"
+#include "../../inc/bluetooth_hal.h"
+#include "../../inc/battery_hal.h"
+#include "../../inc/motor_hal.h"
+#include "../../inc/powertrain_module.h"
 
 #define SEPARATOR ","   /*   the message will contain key - value pairs separated by commas      */
 
