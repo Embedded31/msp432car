@@ -7,7 +7,7 @@
  *
  * PUBLIC FUNCTIONS:
  *      void        Remote_Module_init()
- *      void        Remote_Module_registerAutoModeRequestCallback(RemoteCallback callback);
+ *      void        Remote_Module_registerModeChangeRequestCallback(RemoteCallback callback);
  *
  * NOTES:
  *

@@ -31,7 +31,6 @@
  *      none
  *
  */
- 
 #ifdef TEST
 #include "../../test/bluetooth_hal.h"
 #include "../../test/battery_hal.h"
@@ -39,7 +38,6 @@
 #else
 #include "../../inc/bluetooth_hal.h"
 #include "../../inc/battery_hal.h"
-#include "../../inc/bluetooth_hal.h"
 #include "../../inc/motor_hal.h"
 #endif
 
