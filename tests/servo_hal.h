@@ -8,6 +8,7 @@
  *      void    SERVO_HAL_init(Servo* servo);
  *      void    SERVO_HAL_setPosition(Servo* servo, int8_t position);
  *      void    SERVO_HAL_registerPositionReachedCallback(ServoCallback callback);
+ *      void    SERVO_HAL_triggerPositionReached();
  *
  * NOTES:
  *
@@ -20,6 +21,7 @@
  * 13 Feb 2024  Andrea Piccin       Refactoring
  * 15 Feb 2024  Matteo Frizzera     Added functions to wait for servo to finish moving
  * 16 Feb 2024  Andrea Piccin       Refactoring, MIN and MAX position moved to header file
+ * 19 Feb 2024  Simone Rossi        Changed for testing
  */
 #include <stdint.h>
 
@@ -138,5 +140,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position);
  *  NOTE:
  */
 void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback);
+
+void SERVO_HAL_triggerPositionReached()
 
 #endif // SERVO_HAL_H
