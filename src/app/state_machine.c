@@ -27,31 +27,29 @@
  */
 #include <stdbool.h>
 
-#include "../../inc/state_machine.h"
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/powertrain_module.h"
-#include "../../inc/sensing_module.h"
 #include "../../inc/remote_module.h"
+#include "../../inc/sensing_module.h"
+#include "../../inc/state_machine.h"
 
-#define SENSING_TIMER_COUNT 46875       // 24MHz / 256 / 46875 = 2Hz = 0.5s
+#define SENSING_TIMER_COUNT 46875 // 24MHz / 256 / 46875 = 2Hz = 0.5s
 
 void obstacleCallback(bool free);
 void turnedCallback();
 void sensingCallback(bool free_left, bool free_right);
 void switchModeCallback();
 
-volatile bool controlled = true;    // Indicate whether the robot is being remotely controlled
-volatile bool obstructed = false;   // Indicate whether the path is obstructed by an obstacle
-volatile bool sensing = false;      // Indicate whether the sensing procedure has been completed
-volatile bool turned = false;       // Indicate whether a turn has been completed
+volatile bool controlled = true;  // Indicate whether the robot is being remotely controlled
+volatile bool obstructed = false; // Indicate whether the path is obstructed by an obstacle
+volatile bool sensing = false;    // Indicate whether the sensing procedure has been completed
+volatile bool turned = false;     // Indicate whether a turn has been completed
 
-FSM_State FSM_currentState = STATE_INIT;    // Current FSM state
-FSM_StateMachine FSM_stateMachine[] = {     // FSM initialization
-        {STATE_INIT, FSM_init},
-        {STATE_RUNNING, FSM_running},
-        {STATE_SENSING, FSM_sensing},
-        {STATE_TURNING, FSM_turning},
-        {STATE_REMOTE, FSM_remote},
+FSM_State FSM_currentState = STATE_INIT; // Current FSM state
+FSM_StateMachine FSM_stateMachine[] = {
+    // FSM initialization
+    {STATE_INIT, FSM_init},       {STATE_RUNNING, FSM_running}, {STATE_SENSING, FSM_sensing},
+    {STATE_TURNING, FSM_turning}, {STATE_REMOTE, FSM_remote},
 };
 
 /*F************************************************************************************************

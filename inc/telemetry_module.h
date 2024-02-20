@@ -2,24 +2,22 @@
  * FILENAME:        telemetry_module.h
  *
  * DESCRIPTION:
- *      This header files contains the definitions of high level functions to send and receive messages
- *      using bluetooth. These messages contain information about the status of the msp432car
- *      Messages could be about speed and direction changes, accelleration, sudden stops, low battery
- *      status, object detection, ...
+ *      This header files contains the definitions of high level functions to send and receive
+ *      messages using bluetooth. These messages contain information about the status of the
+ *      msp432car
+ *      Messages could be about speed and direction changes, acceleration, sudden stops, low
+ *      battery status, object detection, etc.
  *
  * PUBLIC FUNCTIONS:
- *      
+ *      TODO:
  *
  * NOTES:
- *      None
  *
  * AUTHOR: Matteo Frizzera    <matteo.frizzera@studenti.unitn.it>
  *
  * START DATE: 12 Feb 2024
  *
  * CHANGES:
- *      none
- * 
  */
 
 #include <stdint.h>
@@ -39,10 +37,10 @@
  *      Type:   enum
  *      Values: MSG_LOW_SEVERITY        least important type of message
  *              MSG_MEDIUM_SEVERITY     message of medium or average importance
- *              MSG_HIGH_SEVERITY       most important message, relating to crucial and key parts of the system
+ *              MSG_HIGH_SEVERITY       most important message, relating to crucial and key parts of
+ * the system
  */
 typedef enum { MSG_LOW_SEVERITY, MSG_MEDIUM_SEVERITY, MSG_HIGH_SEVERITY } MessageSeverity;
-
 
 /*T************************************************************************************************
  * NAME: MessageType
@@ -52,12 +50,17 @@ typedef enum { MSG_LOW_SEVERITY, MSG_MEDIUM_SEVERITY, MSG_HIGH_SEVERITY } Messag
  *
  * SPECIFICATIONS:
  *      Type:   enum
- *      Values: MSG_OBJECT_DETECTED                 detected an object in the path of the msp432car  
- *              MSG_BATTERY_STATUS_UPDATE           updates battery status, for example when battery is decreasing
- *              MSG_SPEED_UPDATE                    speed of motor has changed
- *              MSG_MOTOR_DIR_UPDATE                direction of motor has changed
+ *      Values: MSG_OBJECT_DETECTED                 detected an object in the path of the msp432car
+ *              MSG_BATTERY_STATUS_UPDATE           updates battery status, for example when battery
+ * is decreasing MSG_SPEED_UPDATE                    speed of motor has changed MSG_MOTOR_DIR_UPDATE
+ * direction of motor has changed
  */
-typedef enum { MSG_OBJECT_DETECTED, MSG_BATTERY_STATUS_UPDATE, MSG_MOTOR_SPEED_UPDATE, MSG_MOTOR_DIR_UPDATE } MessageType;
+typedef enum {
+    MSG_OBJECT_DETECTED,
+    MSG_BATTERY_STATUS_UPDATE,
+    MSG_MOTOR_SPEED_UPDATE,
+    MSG_MOTOR_DIR_UPDATE
+} MessageType;
 
 /*S************************************************************************************************
  * NAME: Message_InfoStruct
@@ -87,11 +90,10 @@ typedef struct Message_InfoStruct Message_Info;
  */
 typedef struct Message_ObjectDetectedStruct {
     Message_Info messageInfo;
-    uint8_t  direction;
+    uint8_t direction;
     uint16_t distance;
 };
 typedef struct Message_ObjectDetectedStruct Message_ObjectDetected;
-
 
 /*S************************************************************************************************
  * NAME: Message_BatteryStatusUpdateStruct
@@ -111,7 +113,6 @@ typedef struct Message_BatteryStatusUpdateStruct {
 };
 typedef struct Message_BatteryStatusUpdateStruct Message_BatteryStatusUpdate;
 
-
 /*S************************************************************************************************
  * NAME: Message_MotorSpeedUpdateStruct
  *
@@ -127,7 +128,6 @@ typedef struct Message_MotorSpeedUpdateStruct {
     uint8_t speed;
 };
 typedef struct Message_MotorSpeedUpdateStruct Message_MotorSpeedUpdate;
-
 
 /*S************************************************************************************************
  * NAME: Message_MotorDirectionUpdateStruct
@@ -145,7 +145,6 @@ typedef struct Message_MotorDirectionUpdateStruct {
 };
 typedef struct Message_MotorDirectionUpdateStruct Message_MotorDirectionUpdate;
 
-
 /*F************************************************************************************************
  * NAME: Telemetry_Module_init()
  *
@@ -157,7 +156,7 @@ typedef struct Message_MotorDirectionUpdateStruct Message_MotorDirectionUpdate;
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          Powertrain      powertrain    struct containing both motors of the msp432car  
+ *          Powertrain      powertrain    struct containing both motors of the msp432car
  *
  *  OUTPUTS:
  *      PARAMETERS:
@@ -169,14 +168,13 @@ typedef struct Message_MotorDirectionUpdateStruct Message_MotorDirectionUpdate;
  */
 void Telemetry_Module_init();
 
-
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_Notify(MessageType, MessageSeverity, const char *msg)
  *
  * DESCRIPTION:
  *      This general function allows to send information about any event. The total message length
- *      must be less than 32 characters total. 
- *      
+ *      must be less than 32 characters total.
+ *
  *
  * INPUTS:
  *      PARAMETERS:
@@ -194,8 +192,8 @@ void Telemetry_Module_init();
  *
  *  NOTE:
  */
-void Telemetry_Module_Notify(MessageType messageType, MessageSeverity messageSeverity, const char *msg);
-
+void Telemetry_Module_Notify(MessageType messageType, MessageSeverity messageSeverity,
+                             const char *msg);
 
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryUpdate)
@@ -222,14 +220,13 @@ void Telemetry_Module_Notify(MessageType messageType, MessageSeverity messageSev
  */
 void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryUpdate);
 
-
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_NotifyBatteryStatus()
  *
  * DESCRIPTION:
  *      This functions send a bluetooth message with information on battery status, that is
  *      battery percentage and voltage
- *      
+ *
  *
  * INPUTS:
  *      PARAMETERS:
@@ -246,7 +243,6 @@ void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryU
  *  NOTE:
  */
 void Telemetry_Module_NotifyBatteryStatus();
-
 
 /*F************************************************************************************************
  * NAME: Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpdate)
@@ -273,13 +269,12 @@ void Telemetry_Module_NotifyBatteryStatus();
  */
 void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpdate);
 
-
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed)
  *
  * DESCRIPTION:
  *      This functions send a bluetooth message about a motor speed change
- *      
+ *
  *
  * INPUTS:
  *      PARAMETERS:
@@ -299,7 +294,6 @@ void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpd
  *  NOTE:
  */
 void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed);
-
 
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate)
@@ -326,16 +320,15 @@ void Telemetry_Module_NotifyMotorSpeedChange(Motor *motor, uint8_t speed);
  */
 void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate);
 
-
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction)
  *
  * DESCRIPTION:
  *      This functions send a bluetooth message about a motor direction change
- *      
+ *
  * INPUTS:
  *      PARAMETERS:
-*           Motor              *motor          the motor in wich the direction change has occurred
+ *           Motor              *motor          the motor in wich the direction change has occurred
  *          MotorDirection      direction      new direction of the motor
  *      GLOBALS:
  *          None
@@ -351,7 +344,6 @@ void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpd
  *  NOTE:
  */
 void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection direction);
-
 
 /*F************************************************************************************************
  * NAME: Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetected)
@@ -378,16 +370,15 @@ void Telemetry_Module_NotifyMotorDirChange(Motor *motor, MotorDirection directio
  */
 void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetected);
 
-
 /*F************************************************************************************************
  * NAME: void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance)
  *
  * DESCRIPTION:
  *      This functions send a bluetooth message with information on the object being detected
- *      
+ *
  * INPUTS:
  *      PARAMETERS:
-*           uint8_t     servoDirection    direction of the object being detected
+ *           uint8_t     servoDirection    direction of the object being detected
  *          uint16_t    objectDistance    distance of the obj from the US sensor (in centimeters)
  *      GLOBALS:
  *          None
@@ -406,6 +397,4 @@ void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetect
  */
 void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance);
 
-
 #endif // TELEMETRY_MODULE_H
-

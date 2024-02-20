@@ -47,11 +47,12 @@ int main(void) {
     System_init();
 
     // [2] Start the finite state machine
-    while(true) {
-       if(FSM_currentState < NUM_STATES){
-           (*FSM_stateMachine[FSM_currentState].function)();
-       } else {
-           while(true) {} // Error: unknown state, halting the system
-       }
-   }
+    while (true) {
+        if (FSM_currentState < NUM_STATES) {
+            (*FSM_stateMachine[FSM_currentState].function)();
+        } else {
+            while (true) {
+            } // Error: unknown state, halting the system
+        }
+    }
 }

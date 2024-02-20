@@ -76,4 +76,4 @@ void Remote_Module_init();
  */
 void Remote_Module_registerModeChangeRequestCallback(RemoteCallback callback);
 
-#endif //REMOTE_MODULE_H
+#endif // REMOTE_MODULE_H

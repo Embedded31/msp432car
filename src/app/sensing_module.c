@@ -63,13 +63,13 @@ typedef enum {
     SENSING_DOUBLE_SAMPLE_MODE,
 } SensingMode;
 
-Servo servo;                           /* Servo motor on which the ultrasonic sensor is mounted  */
-SensingMode currentSensingMode;        /* Represent the current operating mode                   */
-SensingSingleCallback singleCallback;  /* Callback function for single measurement               */
+Servo servo;                          /* Servo motor on which the ultrasonic sensor is mounted  */
+SensingMode currentSensingMode;       /* Represent the current operating mode                   */
+SensingSingleCallback singleCallback; /* Callback function for single measurement               */
 SensingDoubleCallback doubleCallback; /* Callback function for double measurements              */
-volatile uint16_t previousSample;      /* Value of the last measurement (for double samples)     */
-volatile int8_t nextDirection;         /* Direction of the next measurement (for double samples) */
-volatile uint8_t sampleCount;          /* Count of the taken samples (for double samples)        */
+volatile uint16_t previousSample;     /* Value of the last measurement (for double samples)     */
+volatile int8_t nextDirection;        /* Direction of the next measurement (for double samples) */
+volatile uint8_t sampleCount;         /* Count of the taken samples (for double samples)        */
 
 /*F************************************************************************************************
  * NAME: void Sensing_Module_init()
