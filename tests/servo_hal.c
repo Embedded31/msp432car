@@ -9,6 +9,7 @@
  *      void    SERVO_HAL_init(Servo* servo)
  *      void    SERVO_HAL_setPosition(Servo* servo, int8_t position)
  *      void    SERVO_HAL_registerPositionReachedCallback(ServoCallback callback)
+ *      void    SERVO_HAL_triggerPositionReached()
  *
  * NOTES:
  *      The PWM timings are calculated basing on the SG90 datasheet:
@@ -70,7 +71,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
 
 void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback) { servoCallback = callback; }
 
-void T32_INT1_IRQHandler() {
+void SERVO_HAL_triggerPositionReached() {
     if (servoCallback != NULL)
         servoCallback();
 }
