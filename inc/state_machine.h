@@ -9,6 +9,7 @@
  *      void        FSM_init()
  *      void        FSM_running()
  *      void        FSM_sensing()
+ *      void        FSM_turning()
  *      void        FSM_remote()
  *
  * NOTES:
@@ -33,6 +34,7 @@
  *      Values:     STATE_INIT          Indicates the initialization state
  *                  STATE_RUNNING       Indicates the running state
  *                  STATE_SENSING       Indicates the sensing state
+ *                  STATE TURNING       Indicates the turning state
  *                  STATE_REMOTE        Indicates the remote state
  *                  NUM_STATES          Indicates the number of states
  */
@@ -40,6 +42,7 @@ typedef enum {
     STATE_INIT,
     STATE_RUNNING,
     STATE_SENSING,
+    STATE_TURNING,
     STATE_REMOTE,
     NUM_STATES,
 } FSM_State;
@@ -64,6 +67,7 @@ typedef struct{
 void FSM_init();        // Handle the STATE_INIT state
 void FSM_running();     // Handle the STATE_RUNNING state
 void FSM_sensing();     // Handle the STATE_SENSING state
+void FSM_turning();     // Handle the STATE_TURNING state
 void FSM_remote();      // Handle the STATE_REMOTE state
 
 // Global variables definition
@@ -72,6 +76,7 @@ FSM_StateMachine FSM_stateMachine[] = {     // FSM initialization
     {STATE_INIT, FSM_init},
     {STATE_RUNNING, FSM_running},
     {STATE_SENSING, FSM_sensing},
+    {STATE_TURNING, FSM_turning},
     {STATE_REMOTE, FSM_remote}
 };
 
