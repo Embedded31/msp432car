@@ -20,8 +20,14 @@
 #include <stdbool.h>
 #include <string.h>
 
+#ifdef TEST
+#include "../../test/bluetooth_hal.h"
+#include "../../test/infrared_hal.h"
+#else
 #include "../../inc/bluetooth_hal.h"
 #include "../../inc/infrared_hal.h"
+#endif
+
 #include "../../inc/powertrain_module.h"
 #include "../../inc/remote_module.h"
 #include "../../inc/state_machine.h"

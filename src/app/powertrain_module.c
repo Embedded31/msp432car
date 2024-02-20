@@ -32,6 +32,12 @@
 #include "../../inc/powertrain_module.h"
 #include "../../inc/system.h"
 
+#ifdef TEST
+#include "../../tests/motor_hal.h"
+#else
+#include "../../inc/motor_hal.h"
+#endif
+
 #define PI 3.14159265358979323846   /* PI value                                             */
 #define POWERTRAIN_FWD_SPEED 40     /* Default speed for forward movements                  */
 #define POWERTRAIN_REV_SPEED 20     /* Default speed for backward movements                 */

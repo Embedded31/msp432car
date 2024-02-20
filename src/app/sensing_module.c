@@ -29,9 +29,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "../../inc/sensing_module.h"
+#ifdef TEST
+#include "../../test/servo_hal.h"
+#include "../../test/ultrasonic_hal.h"
+#else
 #include "../../inc/servo_hal.h"
 #include "../../inc/ultrasonic_hal.h"
+#endif
+
+#include "../../inc/sensing_module.h"
 
 #define SERVO_POS_LEFT SERVO_MAX_POSITION  /* Position left                                     */
 #define SERVO_POS_FRONT 0                  /* Position front, meaning in between right and left */
