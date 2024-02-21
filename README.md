@@ -11,23 +11,48 @@ able to switch modes between autonomous driving and remote contol.
 
 ## Hardware components
 
-TI MSP432401P401R
+### TI MSP432401P401R
+This is the microcontroller that pilots the car  
+
 ![MSP432401P401R](/.github/image_MSP432.png?raw=true)
 
-HC-SR04 ultrasonic sensor
+<br>
+
+
+### HC-SR04 ultrasonic sensor
+Sends ultrasonic waves to detect objects near the car  
+
 ![HC-SR04](/.github/image_HCSR04.jpg?raw=true)
 
-SG90 servo motor
+<br>
+
+### SG90 servo motor
+Moves the ultrasonic sensor from left to right  
+
 ![SG90](/.github/image_SG90.jpg?raw=true)
 
-HC08 ble module
+<br>
+
+### HC08 ble module
+Sends information about the status of the car to an external device
+
 ![HC-08](/.github/image_HC08.png?raw=true)
 
-TL1838 infrared module
+<br>
+
+### TL1838 infrared module
+Used to receive commands to pilot the car  
+
 ![TL-1838](/.github/image_TL1838.jpg?raw=true)
 
-L298N motor driver
+<br>
+
+### L298N motor driver
+It's respondible for sending power to the wheels
+
 ![L298N](/.github/image_L298N.png?raw=true)
+
+<br>
 
 
 ## Code structure
