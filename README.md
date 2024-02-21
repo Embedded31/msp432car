@@ -24,8 +24,8 @@ The principal features are:
 - **HC-SR04 ultrasonic sensor**: sends ultrasonic waves to detect objects near the car
 - **SG90 servo motor**: moves the ultrasonic sensor from left to right 
 - **HC08 Bluetooth Low Energy module**: exchanges information with the connected devices
-- **infrared receiver & controller**: used to receive commands to pilot the car
-- **L298N motor driver**: responsible of managing the motor's voltage
+- **infrared receiver & controller**: used to receive and send commands to pilot the car
+- **L298N motor driver**: responsible for managing the motor's voltage
 - **DC motors**: for allowing the car to move
 - **Battery pack**: in our case a 2x 3.7V 2200mAh batteries
 - **Voltage dividers**: we used two self-made voltage dividers in order to reduce the 5V outputs from the ultrasonic and infrared sensors
@@ -206,5 +206,5 @@ The supported commands are:
 
 - **Simone Rossi**: infrared HAL, motor HAL, servo HAL, main, system, state machine, powertrain module, unit and integration testing.
 
-- **Matteo Frizzera**: sensing module, telemetry module; some work in servo hal. Presentation and readme
+- **Matteo Frizzera**: sensing module, telemetry module; some work in servo HAL. Presentation and readme
 
