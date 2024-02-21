@@ -156,10 +156,10 @@ wheel, motors
 | P1.7 | interrupt for ultrasonic sensor echo pin  |             
 
 
-# links
+# Links
 
-presentation
-youtube
++ [Video](https://youtu.be/ml64IiFhyTM)
++ [Slides](https://docs.google.com/presentation/d/1Rq2v0xtXG-0sWzcRDlUgwbvq_DOUz4xPYq6V3XFrePk/edit?usp=sharing)
 
 # Team members contributions
 
