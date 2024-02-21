@@ -6,56 +6,69 @@
 :-------------------------:|:-------------------------:
 ![MSP432car](/.github/image_sideMSP432car.png?raw=true)  |  ![MSP432car](/.github/image_side2MSP432car.png?raw=true)
 
-The aim of this project was to create a battery powered, self driving car able to detect and avoid obstacles. The car can also be controlled via an infrared transmitter, and is 
-able to switch modes between autonomous driving and remote contol.
+The MSP432Car embedded project is a battery-powered remotely IR-controlled car with both manual and autonomous driving capabilities, this project focuses on obstacle recognition and avoidance, remote control via IR signals and Bluetooth Low Energy communications.
 
-## Hardware components
+The principal features are:
+- **Obstacle recognition and avoidance**: thanks to the combined work of the ultrasonic sensor and the servo motor the car is capable of discover and avoid the obstacles present on the path.
+- **Remote manual driving**: the car can be remotely controlled using an infrared controller or by sending specific bluetooth messages.
+- **Logging**: every time that a relevant event occurs, the car will send (expose) a bluetooth message using the BLE technology.
+- **Autonomous mode**: the car is provided with a self-driving mode in which it applies obstacle avoidance mechanisms.
 
-### TI MSP432401P401R
-This is the microcontroller that pilots the car  
+---
+<br>
 
-![MSP432401P401R](/.github/image_MSP432.png?raw=true)
+## Requirements
+
+### Hardware requirements
+- **Texas Instruments MSP432P401R**: the microcontroller that runs the code
+- **HC-SR04 ultrasonic sensor**: sends ultrasonic waves to detect objects near the car
+- **SG90 servo motor**: moves the ultrasonic sensor from left to right 
+- **HC08 Bluetooth Low Energy module**: exchanges information with the connected devices
+- **infrared receiver & controller**: used to receive commands to pilot the car
+- **L298N motor driver**: responsible of managing the motor's voltage
+- **DC motors**: for allowing the car to move
+- **Battery pack**: in our case a 2x 3.7V 2200mAh batteries
+- **Voltage dividers**: we used two self-made voltage dividers in order to reduce the 5V outputs from the ultrasonic and infrared sensors
+to a 3.3V signal manageable from the MSP432; a third voltage divider is used to scale down the battery voltage for ADC conversions.
+- **Voltage converter**: in order to provide three power lines (5V, 3.3V and GND) to the system from the battery pack, in our case 
+we used an old arduino one like board that handles the battery output and offers the three voltages as output.
+
+|   |   |   |   |
+|---|---|---|---|
+|![MSP432401P401R](/.github/image_MSP432.png?raw=true) | ![HC-SR04](/.github/image_HCSR04.jpg?raw=true) | ![SG90](/.github/image_SG90.jpg?raw=true) | ![HC-08](/.github/image_HC08.png?raw=true)  |
+| ![TL-1838](/.github/image_infrared.jpg?raw=true) | ![L298N](/.github/image_L298N.png?raw=true) | ![DCMotor](/.github/image_dc_motor.jpg?raw=true) | ![Battery](/.github/image_batteries.jpg?raw=true) |
+
+#### Pin mapping 
+
+|Port | Pin | Direction |        Device                   | Pin | Description         | 
+|-----|-----|-----------|---------------------- |-----|---------------------|
+| 1 | 6 | OUT |Ultrasonic sensor | Trig | Used to trigger a new ultrasonic measurement | 
+| 1 | 7 | IN |Ultrasonic sensor | Echo | Result signal of the measurement |      
+| 2 | 4 | OUT | Motor driver | ENB | PWM signal of the B channel | 
+| 2 | 5 | OUT | Motor driver | ENA | PWM signal of the A channel | 
+| 2 | 7 | IN | Infrared receiver | Signal | TTL signal of a IR reading | 
+| 3 | 2 | IN | Bluetooth LE module | RX | Serial reception 
+| 3 | 3 | OUT | Bluetooth LE module | TX | Serial transmission 
+| 4 | 1 | OUT | Motor driver | IN1 | Channel A direction selector 0 
+| 4 | 2 | OUT | Motor driver | IN2 | Channel A direction selector 1 
+| 4 | 3 | OUT | Motor driver | IN3 | Channel B direction selector 0 
+| 4 | 4 | OUT | Motor driver | IN4 | Channel B direction selector 1 
+| 5 | 6 | OUT | Servo motor | Signal | PWM signal for a specific position
+| 6 | 1 | IN | Battery voltage divider | - | Current voltage of the battery pack (scaled down) 
 
 <br>
 
+### Software requirements
+- **ARM GNU Toolchain**: used to cross-compile the code for the microcontroller
+- **GNU Make**: for an easy and automated approach to the building, flashing and testing process
+- **Cppcheck**: completely optional, we used it for running static analysis of the code before compiling
+- **OpenOCD**: for flashing the compiled executable into the microcontroller
+- **Local Toolchain**: for compiling and executing the testing program
 
-### HC-SR04 ultrasonic sensor
-Sends ultrasonic waves to detect objects near the car  
-
-![HC-SR04](/.github/image_HCSR04.jpg?raw=true)
-
+---
 <br>
 
-### SG90 servo motor
-Moves the ultrasonic sensor from left to right  
-
-![SG90](/.github/image_SG90.jpg?raw=true)
-
-<br>
-
-### HC08 ble module
-Sends information about the status of the car to an external device
-
-![HC-08](/.github/image_HC08.png?raw=true)
-
-<br>
-
-### TL1838 infrared module
-Used to receive commands to pilot the car  
-
-![TL-1838](/.github/image_TL1838.jpg?raw=true)
-
-<br>
-
-### L298N motor driver
-It's respondible for sending power to the wheels
-
-![L298N](/.github/image_L298N.png?raw=true)
-
-<br>
-
-
-## Code structure
+## Project Layout
 
 ```
 
@@ -132,65 +145,66 @@ It's respondible for sending power to the wheels
 
 
 All hardware dependent components of the project are in the HAL (Hardware Abstraction Layer). This has allowed us
-to easily test the rest of the system, as we can simulate the hardware with with software, therefore eliminating all complications that come with working with real hardware.
+to easily test the rest of the system, as we can simulate the hardware with software, therefore eliminating all complications that come with working with real hardware.
 In the 'test' folder all functions of the HAL have been replaced by mock functions
-that return valid values and correctly set enviroment variables, but without interacting with the hardware. Unit tests have been developed to check whether the function behaves as expected under a wide range of circumstances.
+that return valid values and correctly set environment variables, but without interacting with the hardware. Unit tests have been developed to check whether the function behaves as expected under a wide range of circumstances.
 
 Higher level functions performing related tasks are grouped into modules. Modules carry out specific, high level work, for
 example checking if there is an object in front of the car, notify the host about general information and status of the car,
 moving the car in a specified direction.
 
-The main.c operates a FSM, this is how the program knows what to do at any given time. For each state there is a corresponding function to execute.
+The main.c operates as a FSM, this is how the program knows what to do at any given time.
 
+---
+<br>
 
-# How to build, burn and run the MSP432car
+## How to build, burn and run
+The first step is to modify the ARM_DIR variable inside the Makefile in order to point to the base folder of the ARM GNU toolchain in
+your system, then the following commands are available:
+- `make`: analyzes and compile the code, the final executable is build/msp432car.elf
+- `make compile`: compiles the code
+- `make flash`: calls openocd and flashes the code into the microcontroller
+- `make test`: compiles the test program (build/test)
 
-TODO andrea 
+---
+<br>
 
-# User guide
+## User guide
 
-The car has two main modes it can operate in. In remote mode the car listens for commands 
-that are sent via infrared signals. Every signal corresponds to a command, for example increase speed, rotate in a particular direction, stop the car. This mode allows a person to manually control the vehicle, for example using a remote infrared controller
-by giving it commands via a infrared remote controller.
-In autonomous driving mode the car goes forward, using the ultrasonic sensor to detect objects in front. When it detects and obstacle, it check lateral clearance by moving the sensor from left to right, then moves in the direction 
-in wich it didn't detect any object. If there is no clear path, meaning the sensor detected an object in front, on the left and on 
-the right, then the msp432car will make a complete 180 degrees turn and go back.
+The car can operate in two different modes:
+- **Autonomous mode**: the car starts and goes forward until a object is detected in front of the car, here the car will check if the path on the right or 
+on the left is clear, turn and repeat; if both left and right are unavailable the car will perform a 180 degrees rotation and restart. 
+- **Remote mode**: in this mode the car waits for commands that can be sent both via infrared or BLE.
 
-We used UART 
+The supported commands are:
 
-wheel, motors 
+| IR controller button | IR decimal code | BLE command | Function |
+|--|--|--|--|
+| Up arrow | 70 | "FWD" | Sets the car in forward direction at default speed (30%) |
+| Down arrow | 21 | "REV" | Sets the car in backward direction at default reverse speed (20%) |
+| Left arrow | 68 | "LFT" | Performs a 45 degrees counterclockwise turn |
+| Right arrow | 67 | "RGT" | Performs a 45 degrees clockwise turn |
+| OK | 64 | "STP" | Stops the car |
+| Num 2 | 25 | | Increase the speed of the motors by 10% (max 100%) |
+| Num 8 | 28 | | Decrease the speed of the motors by 10% (min 20%) |
+| Asterisk | 66 | "AUT" / "MAN" | Toggles the operating mode between |
 
+---
+<br>
 
-
-# Pin mapping 
-
-|PIN   |        DESCRIPTION                    |
-| -----|-------------------------------------- |
-| P6.1 | battery adc conversion                | 
-| P3.2 | bluetooth receiver input pin          | 
-| P3.2 | bluetooth transmitter output pin      |         
-| P2.7 | interrupt infrared port               |     
-| P2.4 | left motor PWM signal                 |     
-| P2.5 | right motor PWM signal                |         
-| P4.1 | right motor direction                 |         
-| P4.2 | right motor direction                 |         
-| P4.3 | left motor direction                  |             
-| P4.4 | left motor direction                  |             
-| P5.6 | servo PWM signal                      |         
-| P1.6 | ultrasonic sensor trigger pin         |         
-| P1.7 | interrupt for ultrasonic sensor echo pin  |             
-
-
-# Links
+## Links
 
 + [Video](https://youtu.be/ml64IiFhyTM)
 + [Slides](https://docs.google.com/presentation/d/1Rq2v0xtXG-0sWzcRDlUgwbvq_DOUz4xPYq6V3XFrePk/edit?usp=sharing)
 
-# Team members contributions
+---
+<br>
 
-Andrea Piccin: remote module, battery hal,  bluetooth hal, infrared hal, timer hal, ultrasonic hal; some work in powertrain, sensing module and motor hal. Many revisions and additions to all files, tested and debugged the code for the whole project.
+## Team members contributions
 
-Simone Rossi: main, system, state machine, powertrain module, motor hal, servo hal, unit and integration testing.
+- **Andrea Piccin**: battery HAL,  bluetooth HAL, infrared HAL, timer HAL, ultrasonic HAL, motor HAL, remote module, sensing module, some work in powertrain and testing. Many revisions and additions to all files, tested and debugged the code for the whole project.
 
-Matteo Frizzera: sensing module, telemetry module; some work in servo hal. Presentation and readme
+- **Simone Rossi**: infrared HAL, motor HAL, servo HAL, main, system, state machine, powertrain module, unit and integration testing.
+
+- **Matteo Frizzera**: sensing module, telemetry module; some work in servo hal. Presentation and readme
 
