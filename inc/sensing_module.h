@@ -26,6 +26,7 @@
  * 16 Feb 2024  Andrea Piccin       Refactoring
  * 19 Feb 2024  Andrea Piccin       Single (front) and Double (lateral) measurements callbacks
  */
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifndef SENSING_MODULE_H
@@ -84,11 +85,11 @@ void Sensing_Module_init();
  *
  * DESCRIPTION:
  *      Moves motor to specified direction (from left -90 deg to right 90 deg) then uses ultrasonic
- *      sensor to check wether there is an object in that direction.
+ *      sensor to check if there is an object in that direction.
  *
  * INPUTS:
  *      PARAMETERS:
- *          uint8_t deg     checks wether there is an object in this direction
+ *          uint8_t     deg    Direction to check
  *      GLOBALS:
  *          None
  *
@@ -112,8 +113,8 @@ void Sensing_Module_checkSingleClearance(int8_t deg);
  *
  * INPUTS:
  *      PARAMETERS:
- *          int8_t deg1     first direction to check
- *          int8_t deg2     second direction to check
+ *          int8_t      deg1     First direction to check
+ *          int8_t      deg2     Second direction to check
  *      GLOBALS:
  *          None
  *
@@ -181,7 +182,7 @@ void Sensing_Module_checkFrontClearance();
  *
  * INPUTS:
  *      PARAMETERS:
- *          SensingSingleCallback callback           The function to register as callback
+ *          SensingSingleCallback       callback        The function to register as callback
  *      GLOBALS:
  *          None
  *
@@ -204,7 +205,7 @@ void Sensing_Module_registerSingleMeasurementReadyCallback(SensingSingleCallback
  *
  * INPUTS:
  *      PARAMETERS:
- *          SensingDoubleCallback callback           The function to register as callback
+ *          SensingDoubleCallback       callback        The function to register as callback
  *      GLOBALS:
  *          None
  *

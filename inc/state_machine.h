@@ -64,14 +64,14 @@ typedef struct {
 } FSM_StateMachine;
 
 // Functions declaration
-void FSM_init();    // Handle the STATE_INIT state
-void FSM_running(); // Handle the STATE_RUNNING state
-void FSM_sensing(); // Handle the STATE_SENSING state
-void FSM_turning(); // Handle the STATE_TURNING state
-void FSM_remote();  // Handle the STATE_REMOTE state
+void FSM_init();    /* Handle the STATE_INIT state    */
+void FSM_running(); /* Handle the STATE_RUNNING state */
+void FSM_sensing(); /* Handle the STATE_SENSING state */
+void FSM_turning(); /* Handle the STATE_TURNING state */
+void FSM_remote();  /* Handle the STATE_REMOTE state  */
 
 // Global variables definition
-extern FSM_State FSM_currentState; // Current FSM state
-extern FSM_StateMachine FSM_stateMachine[];
+extern FSM_State FSM_currentState;              /* Current FSM state    */
+extern FSM_StateMachine FSM_stateMachine[];     /* Finite State Machine */
 
 #endif /* STATE_MACHINE_H_ */

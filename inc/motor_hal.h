@@ -30,8 +30,6 @@
  */
 #include <stdint.h>
 
-#include "driverlib/driverlib.h"
-
 #ifndef MOTOR_HAL_H
 #define MOTOR_HAL_H
 
@@ -105,7 +103,7 @@ typedef void (*MotorSpeedCallback)(Motor *motor, uint8_t speed);
  *
  * DESCRIPTION:
  *      It's a pointer to a function that it's invoked every time there is a change in the motor
- *      speed.
+ *      direction.
  *
  * SPECIFICATIONS:
  *      Type:   void*
@@ -122,10 +120,10 @@ typedef void (*MotorDirCallback)(Motor *motor, MotorDirection direction);
  *  Type:   struct
  *  Vars:   uint8_t             in1_pin         Pin for clockwise (CW) rotation
  *          uint8_t             in2_pin         Pin for counterclockwise (CCW) rotation
- *          uint8_t             ccr             Capture Compare Register with the target value for
- * PWM MotorState          state           Current state of the motor MotorSpeedCallback
- * speedCallback   Function to call on speed change MotorDirCallback    dirCallback     Function to
- * call on direction change
+ *          uint8_t             ccr             Capture Compare Register with the target PWM value
+ *          MotorState          state           Current state of the motor
+ *          MotorSpeedCallback  speedCallback   Function to call on speed change
+ *          MotorDirCallback    dirCallback     Function to call on direction change
  */
 struct MotorStruct {
     uint8_t in1_pin;

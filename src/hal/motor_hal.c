@@ -19,6 +19,7 @@
  *      have a total of four motors controlled as left and right pairs.
  *
  * AUTHOR: Simone Rossi    <simone.rossi-2@studenti.unitn.it>
+ *         Andrea Piccin   <andrea.piccin@studenti.unitn.it>
  *
  * START DATE: 31 Jan 2024
  *
@@ -30,6 +31,7 @@
 #include <stdio.h>
 
 #include "../../inc/motor_hal.h"
+#include "../../inc/driverlib/driverlib.h"
 
 #define MOTOR_TIMER_PERIOD 5000        /* Max value of the counter           */
 #define MOTOR_ENABLE_PORT GPIO_PORT_P2 /* Port for the PWM signals           */

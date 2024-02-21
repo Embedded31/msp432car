@@ -5,7 +5,7 @@
 #define QUEUE_H
 
 #define QUEUE_SIZE 10
-#define QUEUE_ELEMENT_SIZE 100
+#define QUEUE_ELEMENT_SIZE 30
 
 typedef struct {
     char data[QUEUE_SIZE][QUEUE_ELEMENT_SIZE];

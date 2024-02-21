@@ -15,9 +15,10 @@
  *
  * CHANGES:
  * DATE         AUTHOR          DETAIL
+ * 21 Feb 2024  Andrea Piccin   Ready for testing
  */
 #include "../../inc/system.h"
-#include "../../inc/driverlib/driverlib.h"
+#include "../../inc/battery_hal.h"
 #include "../../inc/powertrain_module.h"
 #include "../../inc/remote_module.h"
 #include "../../inc/sensing_module.h"
@@ -51,6 +52,7 @@
  *  NOTE:
  */
 void System_init() {
+#ifndef TEST
     // [1] Stop the watchdog timer
     WDT_A_holdTimer();
 
@@ -63,10 +65,12 @@ void System_init() {
     // [3] Set the centered frequency of the Digitally Controlled Oscillator (DCO)
     CS_setDCOCenteredFrequency(DCO_FREQUENCY);
 
+    TIMER_HAL_init();
+#endif
+
     // [4] Init all modules
     Powertrain_Module_init();
     Remote_Module_init();
-    Sensing_Module_init();
     Telemetry_Module_init();
-    TIMER_HAL_init();
+    Sensing_Module_init();
 }

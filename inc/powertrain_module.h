@@ -28,8 +28,30 @@
  */
 #include <stdint.h>
 
+#ifdef TEST
+#include "../tests/motor_hal.h"
+#else
+#include "motor_hal.h"
+#endif
+
 #ifndef POWERTRAIN_MODULE_H_
 #define POWERTRAIN_MODULE_H_
+
+/*T************************************************************************************************
+ * NAME: Powertrain
+ *
+ * DESCRIPTION:
+ *      Represent the powertrain system
+ *
+ * SPECIFICATIONS:
+ *      Type:   struct
+ *      Vars:   Motor         left_motor        Represent the left pair of motors
+ *              Motor         right_motor       Represent the right pair of motors
+ */
+typedef struct {
+    Motor left_motor;
+    Motor right_motor;
+} Powertrain;
 
 /*T************************************************************************************************
  * NAME: PowertrainCallback
@@ -42,6 +64,8 @@
  *      Args:   None
  */
 typedef void (*PowertrainCallback)();
+
+extern volatile Powertrain powertrain;
 
 /*F************************************************************************************************
  * NAME: void Powertrain_Module_init()
@@ -106,7 +130,6 @@ void Powertrain_Module_stop();
  *          None
  *
  *  NOTE:
- *      The execution will be halted until the stop function is called.
  */
 void Powertrain_Module_moveForward();
 
@@ -129,7 +152,6 @@ void Powertrain_Module_moveForward();
  *          None
  *
  *  NOTE:
- *      The execution will be halted until the stop function is called.
  */
 void Powertrain_Module_moveBackward();
 

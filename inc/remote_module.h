@@ -58,7 +58,7 @@ void Remote_Module_init();
  * NAME: void Remote_Module_registerAutoModeRequestCallback(RemoteCallback callback)
  *
  * DESCRIPTION:
- *      Initialises the hardware and variables needed for the IR remote control.
+ *      Registers a given function as the callback function for mode changes.
  *
  * INPUTS:
  *      PARAMETERS:

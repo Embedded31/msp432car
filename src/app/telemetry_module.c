@@ -8,45 +8,44 @@
  *
  *
  * PUBLIC FUNCTIONS:
- *      void Telemetry_Module_init(Motor *motor1, Motor *motor2)
+ *      void Telemetry_Module_init()
  *      void Telemetry_Module_Notify(MessageType, MessageSeverity, const char *msg)
- *      void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryUpdate)
  *      void Telemetry_Module_NotifyBatteryStatus()
- *      void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpdate)
  *      void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed)
  *      void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed)
- *      void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate)
  *      void Telemetry_Module_NotifyLeftMotorDirChange(Motor *motor, MotorDirection direction)
  *      void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection direction)
- *      void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetected)
  *      void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance)
 
  * NOTES:
- *      Every message contains key value pairs
- *      These fields are separated by the SEPARATOR defined below
+ *      Every message contains key value pairs separated by the SEPARATOR defined below.
  *
  * AUTHOR: Matteo Frizzera    <matteo.frizzera@studenti.unitn.it>
  *
  * START DATE: 12 Feb 2024
  *
  * CHANGES:
- *      none
- *
+ * DATE         AUTHOR          DETAIL
+ * 20 Feb 2024  Andrea Piccin   Refactor, removed utility functions from header file; test ready
  */
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+#include "../../inc/powertrain_module.h"
+#include "../../inc/telemetry_module.h"
+
 #ifdef TEST
-#include "../../test/bluetooth_hal.h"
-#include "../../test/battery_hal.h"
-#include "../../test/motor_hal.h"
+#include "../../tests/battery_hal.h"
+#include "../../tests/bluetooth_hal.h"
+#include "../../tests/motor_hal.h"
 #else
-#include "../../inc/bluetooth_hal.h"
 #include "../../inc/battery_hal.h"
+#include "../../inc/bluetooth_hal.h"
 #include "../../inc/motor_hal.h"
 #endif
 
-#include "../../inc/telemetry_module.h"
-#include "../../inc/powertrain_module.h"
-
-#define SEPARATOR "," /*   the message will contain key - value pairs separated by commas      */
+#define SEPARATOR ',' /*   the message will contain key - value pairs separated by commas      */
 
 #define MAX_MSG_LEN                                                                                \
     18 /*  all messages should be 32 char long (including \r\n, so 30 total                        \
@@ -55,6 +54,82 @@
            string termination char \0                                           */
 
 char buffer[MAX_MSG_LEN]; /* buffer to write msg content to before being sent out to notify      */
+
+/*T************************************************************************************************
+ * NAME: Message_Info
+ *
+ * DESCRIPTION:
+ *      Represent basic information shared across all types of messages: severity and type
+ *
+ *  Type:   struct
+ *  Vars:   MessageSeverity severity         how important the message is
+ *          MessageType     type             what the message is about
+ */
+typedef struct {
+    MessageSeverity severity;
+    MessageType type;
+} Message_Info;
+
+/*T************************************************************************************************
+ * NAME: Message_ObjectDetected
+ *
+ * DESCRIPTION:
+ *      Contains information about the detection of an obstacle
+ *
+ *  Type:   struct
+ *  Vars:   MessageSeverity     severity         how important the message is
+ *          MessageType         type             what the message is about
+ */
+typedef struct {
+    Message_Info messageInfo;
+    uint8_t direction;
+    uint16_t distance;
+} Message_ObjectDetected;
+
+/*T************************************************************************************************
+ * NAME: Message_BatteryStatusUpdate
+ *
+ * DESCRIPTION:
+ *      Represent information about the battery
+ *
+ *  Type:   struct
+ *  Vars:   Message_Info    messageInfo       basic info about the message
+            uint16_t        voltage           battery voltage
+ */
+typedef struct {
+    Message_Info messageInfo;
+    uint16_t voltage;
+} Message_BatteryStatusUpdate;
+
+/*T************************************************************************************************
+ * NAME: Message_MotorSpeedUpdate
+ *
+ * DESCRIPTION:
+ *      Represent information about a change in motor speed
+ *
+ *  Type:   struct
+ *  Vars:   Message_Info    messageInfo       basic info about the message
+            uint8_t         speed             new speed of the motor
+ */
+typedef struct {
+    Message_Info messageInfo;
+    uint8_t speed;
+} Message_MotorSpeedUpdate;
+
+/*T************************************************************************************************
+ * NAME: Message_MotorDirectionUpdate
+ *
+ * DESCRIPTION:
+ *      Represent information about a change in motor direction
+ *
+ *  Type:   struct
+ *  Vars:   Message_Info     messageInfo       basic info about the message
+            MotorDirection   direction         new direction of the motor
+ */
+typedef struct {
+    Message_Info messageInfo;
+    MotorDirection direction;
+} Message_MotorDirectionUpdate;
 
 /*F************************************************************************************************
  * NAME: Telemetry_Module_init()
@@ -78,21 +153,11 @@ char buffer[MAX_MSG_LEN]; /* buffer to write msg content to before being sent ou
  *  NOTE:
  */
 void Telemetry_Module_init() {
-    // register speed change callback
-    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.left_motor,
-                                          Telemetry_Module_NotifyLeftMotorSpeedChange);
-    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.right_motor,
-                                          Telemetry_Module_NotifyRightMotorSpeedChange);
-
-    // register direction change callback
-    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.left_motor,
-                                              Telemetry_Module_NotifyLeftMotorDirChange);
-    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.right_motor,
-                                              Telemetry_Module_NotifyRightMotorDirChange);
+    BATTERY_HAL_init();
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_Notify(MessageType messageType, MessageSeverity messageSeverity,
+ * NAME: void Telemetry_Module_notify(MessageType messageType, MessageSeverity messageSeverity,
  * const char *msg)
  *
  * DESCRIPTION:
@@ -118,14 +183,14 @@ void Telemetry_Module_init() {
  *
  *  NOTE:
  */
-void Telemetry_Module_Notify(MessageType messageType, MessageSeverity messageSeverity,
+void Telemetry_Module_notify(MessageType messageType, MessageSeverity messageSeverity,
                              const char *msg) {
-    BT_HAL_sendMessage("type:%d" SEPARATOR "sev:%d" SEPARATOR "%s" SEPARATOR, messageType,
-                       messageSeverity, msg);
+    BT_HAL_sendMessage("type:%d%csev:%d%c%s", messageType, SEPARATOR, messageSeverity, SEPARATOR,
+                       msg);
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryUpdate)
+ * NAME: void Telemetry_Module_sendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryUpdate)
  *
  * DESCRIPTION:
  *      This functions reads data from a battery message struct, formats it and puts it into a
@@ -148,17 +213,17 @@ void Telemetry_Module_Notify(MessageType messageType, MessageSeverity messageSev
  *
  *  NOTE:
  */
-void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryUpdate) {
+void Telemetry_Module_sendMsgBatteryStatus(const Message_BatteryStatusUpdate *batteryUpdate) {
 
     // prints to buffer the battery information
-    sprintf(buffer, "pct:%d" SEPARATOR "vol:%d", batteryUpdate->percentage, batteryUpdate->voltage);
+    sprintf(buffer, "v:%d", batteryUpdate->voltage);
 
-    Telemetry_Module_Notify(batteryUpdate->messageInfo.type, batteryUpdate->messageInfo.severity,
+    Telemetry_Module_notify(batteryUpdate->messageInfo.type, batteryUpdate->messageInfo.severity,
                             buffer);
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyBatteryStatus()
+ * NAME: void Telemetry_Module_notifyBatteryStatus()
  *
  * DESCRIPTION:
  *      This functions fills a message struct with information about the battery status, then calls
@@ -186,13 +251,12 @@ void Telemetry_Module_SendMsgBatteryStatus(Message_BatteryStatusUpdate *batteryU
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyBatteryStatus() {
+void Telemetry_Module_notifyBatteryStatus() {
     // [1] creates message struct containing battery information
     Message_BatteryStatusUpdate batteryUpdate;
 
     // [2] gets battery percentage value
-    uint8_t batteryPercetage = BATTERY_HAL_getPercentage();
-    batteryUpdate.percentage = batteryPercetage;
+    uint8_t batteryPercentage = BATTERY_HAL_getPercentage();
 
     // [3] gets battery voltage value
     uint16_t batteryVoltage = BATTERY_HAL_getVoltage();
@@ -200,9 +264,9 @@ void Telemetry_Module_NotifyBatteryStatus() {
 
     // [4] sets meta information about the message, namely type and severity depending on battery
     // percentage
-    if (batteryPercetage >= 80) {
+    if (batteryPercentage >= 80) {
         batteryUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
-    } else if (batteryPercetage <= 20) {
+    } else if (batteryPercentage <= 20) {
         batteryUpdate.messageInfo.severity = MSG_HIGH_SEVERITY;
     } else {
         batteryUpdate.messageInfo.severity = MSG_MEDIUM_SEVERITY;
@@ -211,11 +275,11 @@ void Telemetry_Module_NotifyBatteryStatus() {
     batteryUpdate.messageInfo.type = MSG_BATTERY_STATUS_UPDATE;
 
     // [5] calls function to actually send the message
-    Telemetry_Module_SendMsgBatteryStatus(&batteryUpdate);
+    Telemetry_Module_sendMsgBatteryStatus(&batteryUpdate);
 }
 
 /*F************************************************************************************************
- * NAME: Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpdate)
+ * NAME: Telemetry_Module_sendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpdate)
  *
  * DESCRIPTION:
  *      This functions reads data from a motor speed message struct, formats it and puts it into a
@@ -238,15 +302,15 @@ void Telemetry_Module_NotifyBatteryStatus() {
  *
  *  NOTE:
  */
-void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpdate) {
-    sprintf(buffer, "speed:%d", speedUpdate->speed);
+void Telemetry_Module_sendMsgMotorSpeedChange(const Message_MotorSpeedUpdate *speedUpdate) {
+    sprintf(buffer, "sp:%d", speedUpdate->speed);
 
-    Telemetry_Module_Notify(speedUpdate->messageInfo.type, speedUpdate->messageInfo.severity,
+    Telemetry_Module_notify(speedUpdate->messageInfo.type, speedUpdate->messageInfo.severity,
                             buffer);
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed)
+ * NAME: void Telemetry_Module_notifyLeftMotorSpeedChange(Motor *motor, uint8_t speed)
  *
  * DESCRIPTION:
  *      This functions creates and fills a message motor speed struct with information about the
@@ -268,18 +332,18 @@ void Telemetry_Module_SendMsgMotorSpeedChange(Message_MotorSpeedUpdate *speedUpd
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed) {
+void Telemetry_Module_notifyLeftMotorSpeedChange(Motor *motor, uint8_t speed) {
     Message_MotorSpeedUpdate motorSpeedUpdate;
 
     motorSpeedUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
-    motorSpeedUpdate.messageInfo.type = MSG_MOTOR_SPEED_UPDATE;
+    motorSpeedUpdate.messageInfo.type = MSG_L_MOTOR_SPEED_UPDATE;
     motorSpeedUpdate.speed = speed;
 
-    Telemetry_Module_SendMsgMotorSpeedChange(&motorSpeedUpdate);
+    Telemetry_Module_sendMsgMotorSpeedChange(&motorSpeedUpdate);
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed)
+ * NAME: void Telemetry_Module_notifyRightMotorSpeedChange(Motor *motor, uint8_t speed)
  *
  * DESCRIPTION:
  *      This functions creates and fills a message motor speed struct with information about the
@@ -301,18 +365,18 @@ void Telemetry_Module_NotifyLeftMotorSpeedChange(Motor *motor, uint8_t speed) {
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed) {
+void Telemetry_Module_notifyRightMotorSpeedChange(Motor *motor, uint8_t speed) {
     Message_MotorSpeedUpdate motorSpeedUpdate;
 
     motorSpeedUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
-    motorSpeedUpdate.messageInfo.type = MSG_MOTOR_SPEED_UPDATE;
+    motorSpeedUpdate.messageInfo.type = MSG_R_MOTOR_SPEED_UPDATE;
     motorSpeedUpdate.speed = speed;
 
-    Telemetry_Module_SendMsgMotorSpeedChange(&motorSpeedUpdate);
+    Telemetry_Module_sendMsgMotorSpeedChange(&motorSpeedUpdate);
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate)
+ * NAME: void Telemetry_Module_sendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate)
  *
  * DESCRIPTION:
  *      This functions reads data from a motor direction message struct, formats it and puts it into
@@ -335,10 +399,10 @@ void Telemetry_Module_NotifyRightMotorSpeedChange(Motor *motor, uint8_t speed) {
  *
  *  NOTE:
  */
-void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpdate) {
+void Telemetry_Module_sendMsgMotorDirChange(const Message_MotorDirectionUpdate *dirUpdate) {
     sprintf(buffer, "dir:%d", dirUpdate->direction);
 
-    Telemetry_Module_Notify(dirUpdate->messageInfo.type, dirUpdate->messageInfo.severity, buffer);
+    Telemetry_Module_notify(dirUpdate->messageInfo.type, dirUpdate->messageInfo.severity, buffer);
 }
 
 /*F************************************************************************************************
@@ -365,18 +429,18 @@ void Telemetry_Module_SendMsgMotorDirChange(Message_MotorDirectionUpdate *dirUpd
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyLeftMotorDirChange(Motor *motor, MotorDirection direction) {
+void Telemetry_Module_notifyLeftMotorDirChange(Motor *motor, MotorDirection direction) {
     Message_MotorDirectionUpdate motorDirUpdate;
 
     motorDirUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
-    motorDirUpdate.messageInfo.type = MSG_MOTOR_DIR_UPDATE;
+    motorDirUpdate.messageInfo.type = MSG_L_MOTOR_DIR_UPDATE;
     motorDirUpdate.direction = direction;
 
-    Telemetry_Module_SendMsgMotorDirChange(&motorDirUpdate);
+    Telemetry_Module_sendMsgMotorDirChange(&motorDirUpdate);
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection direction)
+ * NAME: void Telemetry_Module_notifyRightMotorDirChange(Motor *motor, MotorDirection direction)
  *
  * DESCRIPTION:
  *      This functions creates and fills a message motor direction struct with information about
@@ -399,18 +463,18 @@ void Telemetry_Module_NotifyLeftMotorDirChange(Motor *motor, MotorDirection dire
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection direction) {
+void Telemetry_Module_notifyRightMotorDirChange(Motor *motor, MotorDirection direction) {
     Message_MotorDirectionUpdate motorDirUpdate;
 
     motorDirUpdate.messageInfo.severity = MSG_LOW_SEVERITY;
-    motorDirUpdate.messageInfo.type = MSG_MOTOR_DIR_UPDATE;
+    motorDirUpdate.messageInfo.type = MSG_R_MOTOR_DIR_UPDATE;
     motorDirUpdate.direction = direction;
 
-    Telemetry_Module_SendMsgMotorDirChange(&motorDirUpdate);
+    Telemetry_Module_sendMsgMotorDirChange(&motorDirUpdate);
 }
 
 /*F************************************************************************************************
- * NAME: Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetected)
+ * NAME: Telemetry_Module_sendMsgObjectDetected(Message_ObjectDetected *objectDetected)
  *
  * DESCRIPTION:
  *      This functions reads data from a object detected message struct, formats it and puts it into
@@ -433,16 +497,15 @@ void Telemetry_Module_NotifyRightMotorDirChange(Motor *motor, MotorDirection dir
  *
  *  NOTE:
  */
-void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetected) {
-    sprintf(buffer, "dir:%d" SEPARATOR "dst:%d", objectDetected->direction,
-            objectDetected->distance);
+void Telemetry_Module_sendMsgObjectDetected(const Message_ObjectDetected *objectDetected) {
+    sprintf(buffer, "dst:%d", objectDetected->distance);
 
-    Telemetry_Module_Notify(objectDetected->messageInfo.type, objectDetected->messageInfo.severity,
+    Telemetry_Module_notify(objectDetected->messageInfo.type, objectDetected->messageInfo.severity,
                             buffer);
 }
 
 /*F************************************************************************************************
- * NAME: void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance)
+ * NAME: void Telemetry_Module_notifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance)
  *
  * DESCRIPTION:
  *      This functions creates and fills a message object detected struct with information about
@@ -467,19 +530,18 @@ void Telemetry_Module_SendMsgObjectDetected(Message_ObjectDetected *objectDetect
  *      this function is called in an interrupt when a US measurement is ready, when it
  *      detected an object close enough
  */
-void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance) {
+void Telemetry_Module_notifyObjectDetected(uint8_t servoDirection, uint16_t objectDistance) {
     Message_ObjectDetected objectDetected;
     objectDetected.messageInfo.severity = MSG_HIGH_SEVERITY;
     objectDetected.messageInfo.type = MSG_OBJECT_DETECTED;
     objectDetected.distance = objectDistance;
     objectDetected.direction = servoDirection;
 
-    Telemetry_Module_SendMsgObjectDetected(&objectDetected);
+    Telemetry_Module_sendMsgObjectDetected(&objectDetected);
 }
 
-
 /*F************************************************************************************************
- * NAME: Telemetry_Module_NotifyModeSwitch(bool controlled)
+ * NAME: Telemetry_Module_notifyModeSwitch(bool controlled)
  *
  * DESCRIPTION:
  *      This functions notifies that the robot switched from manual remote controlled mode
@@ -502,10 +564,7 @@ void Telemetry_Module_NotifyObjectDetected(uint8_t servoDirection, uint16_t obje
  *
  *  NOTE:
  */
-void Telemetry_Module_NotifyModeSwitch(bool controlled) {
-
-    sprintf(buffer, "mode:%s", controlled ? "manual" : "auto");
-
-    Telemetry_Module_Notify(MSG_MODE_SWITCH, MSG_HIGH_SEVERITY,
-                            buffer);
+void Telemetry_Module_notifyModeSwitch(bool controlled) {
+    sprintf(buffer, "mode:%s", controlled ? "0" : "1");
+    Telemetry_Module_notify(MSG_MODE_SWITCH, MSG_HIGH_SEVERITY, buffer);
 }

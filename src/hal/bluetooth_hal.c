@@ -24,12 +24,10 @@
  * 04 Feb 2024  Andrea Piccin   Refactoring
  * 09 Feb 2024  Andrea Piccin   Introduced callback mechanism
  * 10 Feb 2024  Andrea Piccin   Fixed multiple message transmission adding a queue
- * 12 Feb 2024  Andrea Piccin   Introduced printf-like sendMessage function
- * 19 Feb 2024  Andrea Piccin   Added fixed message length (32) for easier communication
+ * 12 Feb 2024  Andrea Piccin   introduced printf-like sendMessage function
  */
 #include <stdarg.h>
 #include <stdio.h>
-#include <string.h>
 
 #include "../../inc/bluetooth_hal.h"
 #include "../../inc/queue.h"
@@ -39,8 +37,7 @@
 #define BT_TX_PIN GPIO_PIN3         /* Bluetooth TX pin                            */
 #define BT_EUSCI_BASE EUSCI_A2_BASE /* eUSCI module used for UART communications   */
 #define BT_EUSCI_INT INT_EUSCIA2    /* eUSCI interrupt related to the eUSCI module */
-#define BT_IN_BUFFER_SIZE 256       /* Max size of the unread message              */
-#define BT_OUT_BUFFER_SIZE 32       /* Fixed size of the outgoing message          */
+#define BT_BUFFER_SIZE 256          /* Max size of the unread message              */
 
 /*T************************************************************************************************
  * NAME: TxState
@@ -54,17 +51,15 @@
  *                  TX_MESSAGE      When the body of the message is being transmitted
  *                  TX_CR           When the carriage return '\r' char have to be sent
  *                  TX_LF           When the line feed '\n' char have to be sent
- *                  TX_PADDING      When a padding char '\0' have to be sent
  */
-typedef enum { TX_IDLE, TX_MESSAGE, TX_CR, TX_LF, TX_PADDING } TxState;
+typedef enum { TX_IDLE, TX_MESSAGE, TX_CR, TX_LF } TxState;
 
-BTCallback btCallback;                                  /* To call when a new message is ready */
-volatile char incomingMessageBuffer[BT_IN_BUFFER_SIZE]; /* Contains the incoming message       */
-volatile uint16_t currentRxIndex;                       /* Index of the current char to read   */
-volatile StringQueue outgoingMessagesQueue;             /* Queue of the messages to send       */
-volatile char *currentTxPointer;                        /* Pointer to the string to send       */
-volatile TxState currentTxState;                        /* State the transmission              */
-volatile uint8_t padding;                               /* Length of the padding string        */
+BTCallback btCallback;                               /* To call when a new message is ready */
+volatile char incomingMessageBuffer[BT_BUFFER_SIZE]; /* Contains the incoming message       */
+volatile uint16_t currentRxIndex;                    /* Index of the current char to read   */
+volatile StringQueue outgoingMessagesQueue;          /* Queue of the messages to send       */
+volatile char *currentTxPointer;                     /* Pointer to the string to send       */
+volatile TxState currentTxState;                     /* State the transmission              */
 
 /*F************************************************************************************************
  * NAME: void BT_HAL_init()
@@ -238,9 +233,7 @@ void BT_HAL_forwardAndReset() {
  *                          the end of string is read ('\n', '\r' or '\0') forward the message to
  *                          the callback function.
  *      TRANSMIT_INTERRUPT: the interrupt signals that the TX buffer is ready, the first message on
- *                          the outgoing queue is dequeued and sent followed by \r\n; some padding
- *                          characters '\0' can follow the string in order to send always strings
- *                          of size BT_OUT_BUFFER_SIZE.
+ *                          the outgoing queue is dequeued and sent followed by \r\n.
  *                          When all the messages are sent disable the transmission interrupt.
  *
  * INPUTS:
@@ -275,8 +268,8 @@ void EUSCIA2_IRQHandler(void) {
         }
 
         // if buffer overflows send the partial string
-        if (currentRxIndex == BT_IN_BUFFER_SIZE) {
-            incomingMessageBuffer[BT_IN_BUFFER_SIZE - 1] = '\0';
+        if (currentRxIndex == BT_BUFFER_SIZE) {
+            incomingMessageBuffer[BT_BUFFER_SIZE - 1] = '\0';
             BT_HAL_forwardAndReset();
             return;
         }
@@ -312,8 +305,7 @@ void EUSCIA2_IRQHandler(void) {
                 UART_transmitData(BT_EUSCI_BASE, *currentTxPointer);
                 currentTxPointer++;
             } else {
-                char *sentString = queue_dequeue(&outgoingMessagesQueue);
-                padding = strlen(sentString) - 2;
+                queue_dequeue(&outgoingMessagesQueue);
                 currentTxState = TX_CR;
             }
         }
@@ -324,15 +316,7 @@ void EUSCIA2_IRQHandler(void) {
             currentTxState = TX_LF;
         } else if (currentTxState == TX_LF) {
             UART_transmitData(BT_EUSCI_BASE, '\n');
-        }
-
-        /* if the state is TX_PADDING send a padding char, if no more padding chars have to be sent
-         * switch to TX_IDLE state */
-        else if (currentTxState == TX_PADDING) {
-            UART_transmitData(BT_EUSCI_BASE, '\0');
-            padding--;
-            if (padding == 0)
-                currentTxState = TX_IDLE;
+            currentTxState = TX_IDLE;
         }
     }
 }

@@ -25,19 +25,21 @@
  * 15 Feb 2024  Matteo Frizzera     Added polling to wait for servo to reach target direction
  * 16 Feb 2024  Andrea Piccin       Refactoring, removed busy waiting mechanism
  * 19 Feb 2024  Andrea Piccin       Single (front) and Double (lateral) measurements callbacks
+ * 21 Feb 2024  Andrea Piccin       Refactoring, added test support
  */
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "../../inc/sensing_module.h"
+#include "../../inc/telemetry_module.h"
+
 #ifdef TEST
-#include "../../test/servo_hal.h"
-#include "../../test/ultrasonic_hal.h"
+#include "../../tests/servo_hal.h"
+#include "../../tests/ultrasonic_hal.h"
 #else
 #include "../../inc/servo_hal.h"
 #include "../../inc/ultrasonic_hal.h"
 #endif
-
-#include "../../inc/sensing_module.h"
 
 #define SERVO_POS_LEFT SERVO_MAX_POSITION  /* Position left                                     */
 #define SERVO_POS_FRONT 0                  /* Position front, meaning in between right and left */
@@ -287,14 +289,23 @@ void Sensing_Module_registerDoubleMeasurementReadyCallback(SensingDoubleCallback
  */
 void Sensing_Module_onUSMeasurementReady(uint16_t distance) {
     if (currentSensingMode == SENSING_SINGLE_SAMPLE_MODE) {
-        if (singleCallback != NULL)
+        if (servo.state.position != 0)
+            SERVO_HAL_resetPosition(&servo);
+
+        if (distance <= SENSING_FREE_THRESHOLD)
+            Telemetry_Module_notifyObjectDetected(0, distance);
+
+        if (singleCallback != NULL) {
             singleCallback(distance > SENSING_FREE_THRESHOLD);
+        }
     } else { // double sensing mode
         sampleCount++;
         if (sampleCount < 2) {
             previousSample = distance;
             SERVO_HAL_setPosition(&servo, nextDirection);
         } else {
+            if (servo.state.position != 0)
+                SERVO_HAL_resetPosition(&servo);
             sampleCount = 0;
             bool isDir1Free = previousSample > SENSING_FREE_THRESHOLD;
             bool isDir2Free = distance > SENSING_FREE_THRESHOLD;

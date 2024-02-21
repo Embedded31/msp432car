@@ -16,21 +16,23 @@
  * START DATE: 19 Feb 2024
  *
  * CHANGES:
+ * DATE         AUTHOR          DETAIL
+ * 21 Feb 2024  Andrea Piccin   Refactoring, added test support
  */
 #include <stdbool.h>
 #include <string.h>
 
+#include "../../inc/remote_module.h"
+#include "../../inc/powertrain_module.h"
+#include "../../inc/state_machine.h"
+
 #ifdef TEST
-#include "../../test/bluetooth_hal.h"
-#include "../../test/infrared_hal.h"
+#include "../../tests/bluetooth_hal.h"
+#include "../../tests/infrared_hal.h"
 #else
 #include "../../inc/bluetooth_hal.h"
 #include "../../inc/infrared_hal.h"
 #endif
-
-#include "../../inc/powertrain_module.h"
-#include "../../inc/remote_module.h"
-#include "../../inc/state_machine.h"
 
 RemoteCallback remoteCallback;
 
@@ -99,6 +101,7 @@ void Remote_Module_onBTMessageReceived(const char *message) {
 }
 
 void Remote_Module_init() {
+    BT_HAL_init();
     IR_HAL_init();
     IR_HAL_registerMessageCallback(Remote_Module_onIRMessageReceived);
     BT_HAL_registerMessageCallback(Remote_Module_onBTMessageReceived);

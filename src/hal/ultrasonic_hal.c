@@ -186,8 +186,8 @@ void US_HAL_convertAndForward() {
     /* calculate the delta between the end and start tick and the corresponding time in µs,
      * if the time exceed 36ms return the no object detected value */
     uint16_t delta = endTick - startTick;
-    uint16_t usec = delta / US_TICKS_TO_USEC_DIVIDER;
-    uint16_t distance = (delta / US_TICKS_TO_CM_DIVIDER) - US_OFFSET_FIX;
+    uint16_t usec = (delta * 1.0) / US_TICKS_TO_USEC_DIVIDER;
+    uint16_t distance = ((delta * 1.0) / US_TICKS_TO_CM_DIVIDER) - US_OFFSET_FIX;
     if (usec > 36000 || distance > 250)
         distance = US_RESULT_NO_OBJECT;
 

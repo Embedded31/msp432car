@@ -25,50 +25,34 @@
  * CHANGES:
  * DATE         AUTHOR          DETAIL
  * 19 Feb 2024  Andrea Piccin   Refactoring, removed busy waiting mechanisms, add speed management
+ * 21 Feb 2024  Andrea Piccin   Refactoring, removed hardware dependant instruction
  */
 #include <stddef.h>
 
-#include "../../inc/driverlib/driverlib.h"
 #include "../../inc/powertrain_module.h"
-#include "../../inc/timer_hal.h"
-#include "../../inc/bluetooth_hal.h"
+#include "../../inc/telemetry_module.h"
 
 #ifdef TEST
 #include "../../tests/motor_hal.h"
 #else
+#include "../../inc/timer_hal.h"
 #include "../../inc/motor_hal.h"
 #endif
 
-#define PI 3.14159265358979323846   /* PI value                                             */
-#define POWERTRAIN_FWD_SPEED 40     /* Default speed for forward movements                  */
-#define POWERTRAIN_REV_SPEED 20     /* Default speed for backward movements                 */
-#define POWERTRAIN_TURN_SPEED 50    /* Default speed for turns                              */
-#define WHEEL_DIAMETER 6.5          /* Wheel diameter in centimeters                        */
-#define WHEEL_MAX_ANGULAR_SPEED 36  /* Wheel maximum angular speed in degrees per second    */
-
-/*T************************************************************************************************
- * NAME: Powertrain
- *
- * DESCRIPTION:
- *      Represent the powertrain system
- *
- * SPECIFICATIONS:
- *      Type:   struct
- *      Vars:   Motor         left_motor        Represent the left pair of motors
- *              Motor         right_motor       Represent the right pair of motors
- */
-typedef struct {
-    Motor left_motor;
-    Motor right_motor;
-} Powertrain;
+#define PI 3.14159265358979323846  /* PI value                                             */
+#define POWERTRAIN_FWD_SPEED 30    /* Default speed for forward movements                  */
+#define POWERTRAIN_REV_SPEED 20    /* Default speed for backward movements                 */
+#define POWERTRAIN_TURN_SPEED 50   /* Default speed for turns                              */
+#define WHEEL_DIAMETER 6.5         /* Wheel diameter in centimeters                        */
+#define WHEEL_MAX_ANGULAR_SPEED 45 /* Wheel maximum angular speed in degrees per second    */
 
 // Functions delcaration
 void wait_milliseconds(uint32_t time);
 uint32_t calculate_time_from_angle(uint8_t speedPercentage, uint8_t angle);
 uint32_t calculate_time_from_distance(uint8_t speedPercentage, uint8_t distance);
 
-// Static and global variables
-volatile static Powertrain powertrain;        /* Store the powertrain struct            */
+//Global variables
+volatile Powertrain powertrain;        /* Store the powertrain struct            */
 PowertrainCallback powertrainCallback = NULL; /* function to invoke on position reached */
 
 /*F************************************************************************************************
@@ -78,6 +62,7 @@ PowertrainCallback powertrainCallback = NULL; /* function to invoke on position 
  *      Initialises the motors.
  *      [1] Initialise motor hal system
  *      [2] Initialise the powertrain and its components
+ *      [3] Enable notifications
  *
  * INPUTS:
  *      PARAMETERS:
@@ -94,8 +79,6 @@ PowertrainCallback powertrainCallback = NULL; /* function to invoke on position 
  *  NOTE:
  */
 void Powertrain_Module_init() {
-    Interrupt_disableMaster();
-
     // [1] Initialize motor hal system
     MOTOR_HAL_init();
 
@@ -103,7 +86,17 @@ void Powertrain_Module_init() {
     MOTOR_HAL_motorInit(&powertrain.left_motor, MOTOR_INIT_LEFT);
     MOTOR_HAL_motorInit(&powertrain.right_motor, MOTOR_INIT_RIGHT);
 
-    Interrupt_enableMaster();
+    // [3] Register callbacks for bluetooth logging
+    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.left_motor,
+                                          Telemetry_Module_notifyLeftMotorSpeedChange);
+    MOTOR_HAL_registerSpeedChangeCallback(&powertrain.right_motor,
+                                          Telemetry_Module_notifyRightMotorSpeedChange);
+
+    // register direction change callback
+    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.left_motor,
+                                              Telemetry_Module_notifyLeftMotorDirChange);
+    MOTOR_HAL_registerDirectionChangeCallback(&powertrain.right_motor,
+                                              Telemetry_Module_notifyRightMotorDirChange);
 }
 
 /*F************************************************************************************************
@@ -362,9 +355,13 @@ void Powertrain_Module_onTimerEnded() {
     MOTOR_HAL_setDirection(&powertrain.left_motor, MOTOR_DIR_STOP);
     MOTOR_HAL_setDirection(&powertrain.right_motor, MOTOR_DIR_STOP);
 
-    // [2] Clear interrupt flags
-    Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    // [2] release timer
+#ifndef TEST
     TIMER_HAL_releaseSharedTimer();
+#endif
+
+    if (powertrainCallback != NULL)
+        powertrainCallback();
 }
 
 /*F************************************************************************************************
@@ -390,7 +387,11 @@ void Powertrain_Module_onTimerEnded() {
  */
 void wait_milliseconds(uint32_t time) {
     // [1] Acquire the timer
+#ifdef TEST
+    Powertrain_Module_onTimerEnded();
+#else
     TIMER_HAL_acquireSharedTimer(time, Powertrain_Module_onTimerEnded);
+#endif
 }
 
 /*F************************************************************************************************

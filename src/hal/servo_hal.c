@@ -16,6 +16,7 @@
  *      and on experimental measurements.
  *
  * AUTHOR: Simone Rossi    <simone.rossi-2@studenti.unitn.it>
+ *         Andrea Piccin   <andrea.piccin@studenti.unitn.it>
  *
  * START DATE: 08 Feb 2024
  *
@@ -25,6 +26,7 @@
  * 15 Feb 2024  Matteo Frizzera     Added callback mechanism to notify servo reached final position
  * 15 Feb 2024  Andrea Piccin       Refactoring, functions using timer A0 now use TIMER32_0
  * 20 Feb 2024  Andrea Piccin       Introduced shared 32-bit timer
+ * 21 Feb 2024  Andrea Piccin       Introduced resetPosition() function
  */
 #include <stdlib.h>
 
@@ -113,6 +115,7 @@ void SERVO_HAL_init(Servo *servo) {
     TIMER_HAL_acquireSharedTimer(SERVO_ADJ_180DEG_TICKS, SERVO_HAL_onTimerEnded);
     while (Timer32_getValue(TIMER32_0_BASE) != 0)
         ;
+    TIMER_HAL_releaseSharedTimer();
     servo->state.position = 0;
 
     Interrupt_enableMaster();
@@ -201,6 +204,31 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
         servo->state.position = position;
     }
 }
+/*F************************************************************************************************
+ * NAME: void SERVO_HAL_resetPosition(Servo* servo);
+ *
+ * DESCRIPTION:
+ *      Set the position of a servo to 0 degrees.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Servo*      servo                      Target servo
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          int8_t      servo->state.position      Set on zero
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void SERVO_HAL_resetPosition(Servo *servo) {
+    Timer_A_setCompareValue(TIMER_A2_BASE, servo->ccr, SERVO_MID_POS_TICKS);
+    Timer_A_clearTimer(TIMER_A2_BASE);
+    servo->state.position = 0;
+}
 
 /*F************************************************************************************************
  * NAME: void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback)
@@ -246,7 +274,7 @@ void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback) { servoCa
  */
 void SERVO_HAL_onTimerEnded() {
     Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    TIMER_HAL_releaseSharedTimer();
     if (servoCallback != NULL)
         servoCallback();
-    TIMER_HAL_releaseSharedTimer();
 }

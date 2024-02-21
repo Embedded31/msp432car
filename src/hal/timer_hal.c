@@ -23,9 +23,12 @@
  * CHANGES:
  */
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "../../inc/driverlib/driverlib.h"
 #include "../../inc/timer_hal.h"
+
+TimerCallback periodicCallback;
 
 /*F************************************************************************************************
  * NAME: void TIMER_HAL_init();
@@ -112,7 +115,7 @@ void TIMER_HAL_setupPeriodicTimer(uint32_t count) {
  *      The callback function must clear the TIMER32_1_INTERRUPT flag.
  */
 void TIMER_HAL_registerPeriodicTimerCallback(TimerCallback callback) {
-    Interrupt_registerInterrupt(INT_T32_INT2, callback);
+    periodicCallback = callback;
 }
 
 /*F************************************************************************************************
@@ -164,4 +167,34 @@ void TIMER_HAL_acquireSharedTimer(uint32_t count, TimerCallback callback) {
  *
  *  NOTE:
  */
-void TIMER_HAL_releaseSharedTimer() { Timer32_haltTimer(TIMER32_0_BASE); }
+void TIMER_HAL_releaseSharedTimer() {
+    Timer32_clearInterruptFlag(TIMER32_0_BASE);
+    Timer32_haltTimer(TIMER32_0_BASE);
+}
+
+/*ISR**********************************************************************************************
+ * NAME: void T32_INT2_IRQHandler()
+ *
+ * DESCRIPTION:
+ *      This function is called every time the TIMER32_1 expires, the function clears the
+ *      interrupt flag and calls the eventually registered callback function.
+ *
+ * INPUTS:
+ *      GLOBALS:
+ *          uint16_t        lastFallingEdge     Tick of the last signal rising edge
+ *
+ *  OUTPUTS:
+ *      GLOBALS:
+ *          uint16_t        lastFallingEdge     Updated with the tick of the last interrupt
+ *          uint32_t        message             With an updated bit
+ *          uint8_t         bitIndex            Increased by one or reset to 0 if it has reached 8
+ *          uint8_t         byteIndex           Decreased by one if all its bits are set
+ *
+ *  NOTE:
+ */
+// cppcheck-suppress unusedFunction
+void T32_INT2_IRQHandler() {
+    Timer32_clearInterruptFlag(TIMER32_1_BASE);
+    if (periodicCallback != NULL)
+        periodicCallback();
+}

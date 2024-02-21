@@ -20,6 +20,7 @@
  * 13 Feb 2024  Andrea Piccin       Refactoring
  * 15 Feb 2024  Matteo Frizzera     Added functions to wait for servo to finish moving
  * 16 Feb 2024  Andrea Piccin       Refactoring, MIN and MAX position moved to header file
+ * 21 Feb 2024  Andrea Piccin       Introduced resetPosition() function
  */
 #include <stdint.h>
 
@@ -118,6 +119,28 @@ void SERVO_HAL_init(Servo *servo);
 void SERVO_HAL_setPosition(Servo *servo, int8_t position);
 
 /*F************************************************************************************************
+ * NAME: void SERVO_HAL_resetPosition(Servo* servo);
+ *
+ * DESCRIPTION:
+ *      Set the position of a servo to 0 degrees.
+ *
+ * INPUTS:
+ *      PARAMETERS:
+ *          Servo*      servo                      Target servo
+ *      GLOBALS:
+ *          None
+ *
+ *  OUTPUTS:
+ *      PARAMETERS:
+ *          int8_t      servo->state.position      Set on zero
+ *      GLOBALS:
+ *          None
+ *
+ *  NOTE:
+ */
+void SERVO_HAL_resetPosition(Servo *servo);
+
+/*F************************************************************************************************
  * NAME: void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback)
  *
  * DESCRIPTION:
@@ -125,7 +148,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position);
  *
  * INPUTS:
  *      PARAMETERS:
- *          ServoCallback callback                  The function to register as callback
+ *          ServoCallback       callback            The function to register as callback
  *      GLOBALS:
  *          None
  *
@@ -133,7 +156,7 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position);
  *      PARAMETERS:
  *          None
  *      GLOBALS:
- *          ServoCallback servoCallback             Set to the given callback
+ *          ServoCallback       servoCallback       Set to the given callback
  *
  *  NOTE:
  */
