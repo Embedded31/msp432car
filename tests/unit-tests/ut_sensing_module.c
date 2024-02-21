@@ -49,26 +49,42 @@ void UT_Sensing_Module_init(){
 
 void UT_Sensing_Module_checkSingleClearance(){
     // safe distance test
-    US_HAL_setDefaultDistance(UT_SENSING_SAFE_DISTANCE);
     expectedDir1Result = true;
     Sensing_Module_checkSingleClearance(30);
+    US_HAL_triggerNextAction(50);
 
     // unsafe distance test
-    US_HAL_setDefaultDistance(UT_SENSING_UNSAFE_DISTANCE);
     expectedDir1Result = false;
     Sensing_Module_checkSingleClearance(30);
+    US_HAL_triggerNextAction(10);
 }
 
 void UT_Sensing_Module_checkDoubleClearance(){
-    // safe distance test
-    US_HAL_setDefaultDistance(UT_SENSING_SAFE_DISTANCE);
+    // safe left & right distance test
     expectedDir1Result = true;
     expectedDir2Result = true;
-    Sensing_Module_checkSingleClearance(-20, 30);
+    Sensing_Module_checkDoubleClearance(-20, 30);
+    US_HAL_triggerNextAction(50);
+    US_HAL_triggerNextAction(50);
+
+    // safe left & unsafe right distance test
+    expectedDir1Result = true;
+    expectedDir2Result = false;
+    Sensing_Module_checkDoubleClearance(-20, 30);
+    US_HAL_triggerNextAction(50);
+    US_HAL_triggerNextAction(10);
+
+    // unsafe left & safe right distance test
+    expectedDir1Result = false;
+    expectedDir2Result = true;
+    Sensing_Module_checkDoubleClearance(-20, 30);
+    US_HAL_triggerNextAction(10);
+    US_HAL_triggerNextAction(50);
 
     // unsafe distance test
-    US_HAL_setDefaultDistance(UT_SENSING_UNSAFE_DISTANCE);
     expectedDir1Result = false;
     expectedDir2Result = false;
-    Sensing_Module_checkSingleClearance(-20, 30);
+    Sensing_Module_checkDoubleClearance(-20, 30);
+    US_HAL_triggerNextAction(10);
+    US_HAL_triggerNextAction(10);
 }

@@ -21,8 +21,8 @@
  */
 #include <assert.h>
 
+#include "../../inc/powertrain_module.h"
 #include "ut_powertrain_module.h"
-#include "../../src/app/powertrain_module.c"
 
 void UT_Powertrain_Module_init() {
     Powertrain_Module_init();
@@ -42,7 +42,7 @@ void UT_Powertrain_Module_testSpeed() {
 
     Powertrain_Module_decreaseSpeed();
     assert(powertrain.left_motor.state.speed == powertrain.right_motor.state.speed
-        && "Difference pairs of motors have different speeds"););
+        && "Difference pairs of motors have different speeds");
     current_speed = powertrain.left_motor.state.speed;
 
     assert(current_speed == initial_speed

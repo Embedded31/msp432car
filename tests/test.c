@@ -1,12 +1,11 @@
 #include <stdio.h>
 
-//#include "unit_test/ut_powertrain_module.h"
 #include "integration-tests/it_state_machine.h"
 #include "unit-tests/ut_sensing_module.h"
 #include "unit-tests/ut_powertrain_module.h"
-#include "../src/app/system.c"
+#include "../inc/system.h"
 
-void main() {
+int main() {
     System_init();
 
     // Starting powertrain module test

@@ -141,6 +141,8 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position);
  */
 void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback);
 
-void SERVO_HAL_triggerPositionReached()
+void SERVO_HAL_triggerPositionReached();
+
+void SERVO_HAL_resetPosition(Servo* servo);
 
 #endif // SERVO_HAL_H

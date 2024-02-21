@@ -19,7 +19,8 @@
  */
 #include <assert.h>
 
-#include "../../src/app/state_machine.c"
+#include "../../inc/state_machine.h"
+#include "../../inc/sensing_module.h"
 #include "../infrared_hal.h"
 #include "../servo_hal.h"
 #include "../ultrasonic_hal.h"
@@ -36,23 +37,22 @@ void IT_State_Machine_test() {
     assert(FSM_currentState == STATE_RUNNING && "Unexpected state");
 
     // Change current state on obstacle detection
-    US_HAL_triggerMeasurement(50);
+    Sensing_Module_checkFrontClearance();
+    US_HAL_triggerNextAction(50);
     assert(FSM_currentState == STATE_RUNNING && "Unexpected state");
-    US_HAL_triggerMeasurement(10);
+    Sensing_Module_checkFrontClearance();
+    US_HAL_triggerNextAction(10);
     assert(FSM_currentState == STATE_SENSING && "Unexpected state");
 
-    // Turn after sensing the side's clearance
-    US_HAL_triggerMeasurement(10);
-    US_HAL_triggerMeasurement(30);
-    assert(FSM_currentState == STATE_TURNING && "Unexpected state");
-
-    // Trigger the position reached callback to return to the running state
-    SERVO_HAL_triggerPositionReached();
+    // Turn and restart after sensing the side's clearance
+    US_HAL_triggerNextAction(10);
+    US_HAL_triggerNextAction(30);
     assert(FSM_currentState == STATE_RUNNING && "Unexpected state");
 
     // Enter the remote state from a random state
-    US_HAL_triggerMeasurement(10);
+    Sensing_Module_checkFrontClearance();
+    US_HAL_triggerNextAction(10);
     assert(FSM_currentState == STATE_SENSING && "Unexpected state");
     IR_HAL_triggerCommandReceived(IR_COMMAND_ASTERISK);
-    assert(FSM_currentState == STATE_RUNNING && "Unexpected state");
+    assert(FSM_currentState == STATE_REMOTE && "Unexpected state");
 }

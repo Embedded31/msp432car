@@ -70,7 +70,7 @@ void US_HAL_init();
  *
  * INPUTS:
  *      PARAMETERS:
- *          uint16_t    distance    Specifies the distance to measure
+ *          None
  *      GLOBALS:
  *          None
  *
@@ -82,7 +82,7 @@ void US_HAL_init();
  *
  *  NOTE:
  */
-void US_HAL_triggerMeasurement(uint16_t distance);
+void US_HAL_triggerMeasurement();
 
 /*F************************************************************************************************
  * NAME: void US_HAL_registerMeasurementCallback(USCallback callback)
@@ -106,6 +106,6 @@ void US_HAL_triggerMeasurement(uint16_t distance);
  */
 void US_HAL_registerMeasurementCallback(USCallback callback);
 
-void US_HAL_setDefaultDistance(uint16_t distance){defaultDistance = distance;}
+void US_HAL_triggerNextAction(uint16_t distance);
 
 #endif // ULTRASONIC_HAL_H

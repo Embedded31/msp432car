@@ -66,7 +66,6 @@ void SERVO_HAL_setPosition(Servo *servo, int8_t position) {
         position = SERVO_MAX_POSITION;
 
     servo->state.position = position;
-    servoCallback();
 }
 
 void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback) { servoCallback = callback; }
@@ -74,4 +73,8 @@ void SERVO_HAL_registerPositionReachedCallback(ServoCallback callback) { servoCa
 void SERVO_HAL_triggerPositionReached() {
     if (servoCallback != NULL)
         servoCallback();
+}
+
+void SERVO_HAL_resetPosition(Servo* servo){
+    servo->state.position = 0;
 }
